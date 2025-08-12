@@ -46,7 +46,7 @@ You need to clone this repository and install the virtual environment.
 ### Python Virtual Environment
 ```sh
 conda env create -f environment.yaml
-conda activate torch_render
+conda activate humanml3d
 ```
 
 In the case of installation failure, you could alternatively install the following:
