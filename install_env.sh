@@ -107,8 +107,8 @@ echo ""
 
 # Unpack the DMPLS model
 echo "Unpacking the DMPLS model..."
-DMPLS_UNZIP_PARENT_DIR="body_models"
-DMPLS_UNZIP_DIR="body_models/dmpls"
+DMPLS_UNZIP_PARENT_DIR="body_model"
+DMPLS_UNZIP_DIR="body_model/dmpls"
 
 if [ ! -d "$DMPLS_UNZIP_DIR" ]; then
     unzip $DMPLS_ZIP -d $DMPLS_UNZIP_PARENT_DIR
@@ -119,8 +119,8 @@ echo ""
 
 # Unpack the SMPL model
 echo "Unpacking the SMPL model..."
-SMPL_UNZIP_PARENT_DIR="body_models"
-SMPL_UNZIP_DIR="body_models/smplh"
+SMPL_UNZIP_PARENT_DIR="body_model"
+SMPL_UNZIP_DIR="body_model/smplh"
 
 if [ ! -d "$SMPL_UNPACK_DIR" ]; then
     unzip $SMPL_ZIP -d $SMPL_UNZIP_PARENT_DIR
