@@ -99,8 +99,11 @@ class BodyModel(nn.Module):
         self.comp_register('f', torch.tensor(smpl_dict['f'].astype(np.int32), dtype=torch.int32), persistent=persistant_buffer)
 
         num_total_betas = smpl_dict['shapedirs'].shape[-1]
+
         if num_betas < 1:
             num_betas = num_total_betas
+        else:
+            pass
 
         shapedirs = smpl_dict['shapedirs'][:, :, :num_betas]
         self.comp_register('shapedirs', torch.tensor(shapedirs, dtype=dtype), persistent=persistant_buffer)
@@ -117,12 +120,16 @@ class BodyModel(nn.Module):
 
             expression = torch.tensor(np.zeros((1, num_expressions)), dtype=dtype)
             self.comp_register('init_expression', expression, persistent=persistant_buffer)
+        else:
+            pass
 
         if self.use_dmpl:
             dmpldirs = np.load(dmpl_fname)['eigvec']
 
             dmpldirs = dmpldirs[:, :, :num_dmpls]
             self.comp_register('dmpldirs', torch.tensor(dmpldirs, dtype=dtype), persistent=persistant_buffer)
+        else:
+            pass
 
         # Regressor for joint locations given shape - 6890 x 24
         self.comp_register('J_regressor', torch.tensor(smpl_dict['J_regressor'], dtype=dtype), persistent=persistant_buffer)
@@ -158,6 +165,8 @@ class BodyModel(nn.Module):
             self.comp_register('init_pose_body', torch.zeros((1, 105), dtype=dtype), persistent=persistant_buffer)
         elif self.model_type == 'animal_dog':
             self.comp_register('init_pose_body', torch.zeros((1, 102), dtype=dtype), persistent=persistant_buffer)
+        else:
+            pass
 
         # pose_hand
         if self.model_type in ['smpl']:
@@ -166,11 +175,15 @@ class BodyModel(nn.Module):
             self.comp_register('init_pose_hand', torch.zeros((1, 15 * 3 * 2), dtype=dtype), persistent=persistant_buffer)
         elif self.model_type in ['mano']:
             self.comp_register('init_pose_hand', torch.zeros((1, 15 * 3), dtype=dtype), persistent=persistant_buffer)
+        else:
+            pass
 
         # face poses
         if self.model_type == 'smplx':
             self.comp_register('init_pose_jaw', torch.zeros((1, 1 * 3), dtype=dtype), persistent=persistant_buffer)
             self.comp_register('init_pose_eye', torch.zeros((1, 2 * 3), dtype=dtype), persistent=persistant_buffer)
+        else:
+            pass
 
         self.comp_register('init_betas', torch.zeros((1, num_betas), dtype=dtype), persistent=persistant_buffer)
 
@@ -222,6 +235,7 @@ class BodyModel(nn.Module):
         assert self.model_type in ['smpl', 'smplh', 'smplx', 'mano', 'animal_horse', 'animal_dog'], ValueError(
             'model_type should be in smpl/smplh/smplx/mano')
         if root_orient is None:  root_orient = self.init_root_orient.expand(batch_size, -1)
+
         if self.model_type in ['smplh', 'smpl']:
             if pose_body is None:  pose_body = self.init_pose_body.expand(batch_size, -1)
             if pose_hand is None:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
@@ -234,6 +248,8 @@ class BodyModel(nn.Module):
             if pose_hand is None:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
         elif self.model_type in ['animal_horse', 'animal_dog']:
             if pose_body is None:  pose_body = self.init_pose_body.expand(batch_size, -1)
+        else:
+            pass
 
         if pose_hand is None and self.model_type not in ['animal_horse', 'animal_dog']:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
 
@@ -249,6 +265,8 @@ class BodyModel(nn.Module):
             full_pose = torch.cat([root_orient, pose_hand], dim=-1)
         elif self.model_type in ['animal_horse', 'animal_dog']:
             full_pose = torch.cat([root_orient, pose_body], dim=-1)
+        else:
+            pass
 
         if self.use_dmpl:
             if dmpls is None: dmpls = self.init_dmpls.expand(batch_size, -1)
@@ -299,5 +317,7 @@ class BodyModel(nn.Module):
             for k, v in res.items():
                 res_class.__setattr__(k, v)
             res = res_class
+        else:
+            pass
 
         return res
