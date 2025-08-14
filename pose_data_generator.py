@@ -28,19 +28,28 @@ else:
 
     from human_body_prior.body_model.body_model import BodyModel
 
+    """
+    Jason 2025-08-14:
+    SMPL（Skinned Multi-Person Linear Model）和DMPL（Dynamic SMPL）是三维人体建模中紧密关联但功能侧重点不同的模型，
+    它们在计算机图形学、动画、虚拟现实等领域有重要应用。
+    
+    - SMPL是一种参数化人体模型，通过解耦形状（shape）和姿态（pose）参数生成三维人体网格（含6890个顶点）。
+    - DMPL是SMPL的动态扩展版本，在保留基础参数（β, θ）的基础上，增加了对软组织动力学（如肌肉颤动、脂肪抖动）的模拟能力。
+    """
     male_bm_path = 'body_model/smplh/male/model.npz'
     male_dmpl_path = 'body_model/dmpls/male/model.npz'
 
     female_bm_path = 'body_model/smplh/female/model.npz'
     female_dmpl_path = 'body_model/dmpls/female/model.npz'
 
-    num_betas = 10  # number of body parameters
+    num_betas = 10  # number of body parameters 形状参数（β）：控制身高、体型（胖瘦）等静态特征，通过PCA降维实现高效参数化
     num_dmpls = 8  # number of DMPL parameters
 
     male_bm = BodyModel(bm_fname=male_bm_path,
                         num_betas=num_betas,
                         num_dmpls=num_dmpls,
                         dmpl_fname=male_dmpl_path).to(comp_device)
+
     faces = c2c(male_bm.f)
 
     female_bm = BodyModel(bm_fname=female_bm_path,
@@ -51,6 +60,7 @@ else:
     paths = []
     folders = []
     dataset_names = []
+
     for root, dirs, files in os.walk('./motion_data/amass_data'):
         #     print(root, dirs, files)
         #     for folder in dirs:
@@ -77,6 +87,7 @@ else:
     def amass_to_pose(src_path, save_path):
         bdata = np.load(src_path, allow_pickle=True)
         fps = 0
+
         try:
             fps = bdata['mocap_framerate']
             frame_number = bdata['trans'].shape[0]
@@ -84,7 +95,7 @@ else:
             #         print(list(bdata.keys()))
             return fps
 
-        fId = 0  # frame id of the mocap sequence
+        frame_id = 0  # frame id of the mocap sequence
         pose_seq = []
         if bdata['gender'] == 'male':
             bm = male_bm

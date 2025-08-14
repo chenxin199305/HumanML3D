@@ -36,7 +36,8 @@ class BodyModel(nn.Module):
     def __init__(self,
                  bm_fname,
                  num_betas=10,
-                 num_dmpls=None, dmpl_fname=None,
+                 num_dmpls=None,
+                 dmpl_fname=None,
                  num_expressions=80,
                  use_posedirs=True,
                  dtype=torch.float32,
@@ -66,9 +67,20 @@ class BodyModel(nn.Module):
         self.num_expressions = num_expressions
 
         njoints = smpl_dict['posedirs'].shape[2] // 3
-        self.model_type = {69: 'smpl', 153: 'smplh', 162: 'smplx', 45: 'mano', 105: 'animal_horse', 102: 'animal_dog', }[njoints]
+        self.model_type = {69: 'smpl',
+                           153: 'smplh',
+                           162: 'smplx',
+                           45: 'mano',
+                           105: 'animal_horse',
+                           102: 'animal_dog', }[njoints]
 
-        assert self.model_type in ['smpl', 'smplh', 'smplx', 'mano', 'mano', 'animal_horse', 'animal_dog'], ValueError(
+        assert self.model_type in ['smpl',
+                                   'smplh',
+                                   'smplx',
+                                   'mano',
+                                   'mano',
+                                   'animal_horse',
+                                   'animal_dog'], ValueError(
             'model_type should be in smpl/smplh/smplx/mano.')
 
         self.use_dmpl = False
