@@ -39,7 +39,7 @@ tensorboard==2.2.0
 tensorboard-plugin-wit==1.8.1
 tensorboardx==2.5.1
 tifffile==2021.11.2
-torch==1.7.1
+torch==1.13.1
 torchgeometry==0.1.2
 tqdm==4.47.0
 transforms3d==0.3.1

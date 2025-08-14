@@ -51,7 +51,7 @@ else:
     paths = []
     folders = []
     dataset_names = []
-    for root, dirs, files in os.walk('./amass_data'):
+    for root, dirs, files in os.walk('./motion_data/amass_data'):
         #     print(root, dirs, files)
         #     for folder in dirs:
         #         folders.append(os.path.join(root, folder))
@@ -63,7 +63,7 @@ else:
             paths.append(os.path.join(root, name))
 
     save_root = './pose_data'
-    save_folders = [folder.replace('./amass_data', './pose_data') for folder in folders]
+    save_folders = [folder.replace('./motion_data/amass_data', './pose_data') for folder in folders]
     for folder in save_folders:
         os.makedirs(folder, exist_ok=True)
     group_path = [[path for path in paths if name in path] for name in dataset_names]
@@ -127,7 +127,7 @@ else:
         pbar.set_description('Processing: %s' % dataset_name)
         fps = 0
         for path in pbar:
-            save_path = path.replace('./amass_data', './pose_data')
+            save_path = path.replace('./motion_data/amass_data', './pose_data')
             save_path = save_path[:-3] + 'npy'
             fps = amass_to_pose(path, save_path)
 
