@@ -8,3 +8,5 @@ body_model/
 pose_data/
 
 joints/
+HumanML3D/new_joints/
+HumanML3D/new_joint_vecs/

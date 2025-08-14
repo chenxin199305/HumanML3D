@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 from human_body_prior.tools.omni_tools import copy2cpu as c2c
 
-flag_run_raw_pose_processing = True
-flag_run_motion_representation = False
+flag_run_raw_pose_processing = False
+flag_run_motion_representation = True
 flag_run_calculate_mean_variance = False
 flag_run_animation = False
 
@@ -57,6 +57,8 @@ else:
                           num_dmpls=num_dmpls,
                           dmpl_fname=female_dmpl_path).to(comp_device)
 
+    # 递归扫描 AMASS 数据集目录
+    # 收集所有数据文件的路径
     paths = []
     folders = []
     dataset_names = []
@@ -72,6 +74,8 @@ else:
                 dataset_names.append(dataset_name)
             paths.append(os.path.join(root, name))
 
+    # 在输出目录中复制AMASS的原始目录结构
+    # 使用 exist_ok=True 避免重复创建
     save_root = './pose_data'
     save_folders = [folder.replace('./motion_data/amass_data', './pose_data') for folder in folders]
     for folder in save_folders:
@@ -85,6 +89,7 @@ else:
 
 
     def amass_to_pose(src_path, save_path):
+        # 加载 AMASS 的 npz 数据
         bdata = np.load(src_path, allow_pickle=True)
         fps = 0
 
@@ -101,12 +106,16 @@ else:
             bm = male_bm
         else:
             bm = female_bm
+
+        # 降采样处理 (120fps -> 20fps)
         down_sample = int(fps / ex_fps)
         #     print(frame_number)
         #     print(fps)
 
         bdata_poses = bdata['poses'][::down_sample, ...]
         bdata_trans = bdata['trans'][::down_sample, ...]
+
+        # 构建模型输入参数
         body_parms = {
             'root_orient': torch.Tensor(bdata_poses[:, :3]).to(comp_device),
             'pose_body': torch.Tensor(bdata_poses[:, 3:66]).to(comp_device),
@@ -115,12 +124,17 @@ else:
             'betas': torch.Tensor(np.repeat(bdata['betas'][:num_betas][np.newaxis], repeats=len(bdata_trans), axis=0)).to(comp_device),
         }
 
+        # 通过人体模型计算关节位置
         with torch.no_grad():
             body = bm(**body_parms)
+
+        # 坐标系转换 (Y-up -> Z-up)
         pose_seq_np = body.Jtr.detach().cpu().numpy()
         pose_seq_np_n = np.dot(pose_seq_np, trans_matrix)
 
+        # 保存处理后的关节数据
         np.save(save_path, pose_seq_np_n)
+
         return fps
 
 
@@ -155,17 +169,24 @@ else:
     from os.path import join as pjoin
 
 
+    # 左右镜像翻转函数
     def swap_left_right(data):
         assert len(data.shape) == 3 and data.shape[-1] == 3
         data = data.copy()
+
+        # 翻转X轴
         data[..., 0] *= -1
+
         right_chain = [2, 5, 8, 11, 14, 17, 19, 21]
         left_chain = [1, 4, 7, 10, 13, 16, 18, 20]
         left_hand_chain = [22, 23, 24, 34, 35, 36, 25, 26, 27, 31, 32, 33, 28, 29, 30]
         right_hand_chain = [43, 44, 45, 46, 47, 48, 40, 41, 42, 37, 38, 39, 49, 50, 51]
+
+        # 交换左右身体部位索引
         tmp = data[:, right_chain]
         data[:, right_chain] = data[:, left_chain]
         data[:, left_chain] = tmp
+
         if data.shape[1] > 24:
             tmp = data[:, right_hand_chain]
             data[:, right_hand_chain] = data[:, left_hand_chain]
@@ -179,12 +200,18 @@ else:
     total_amount = index_file.shape[0]
     fps = 20
 
+    # 处理索引文件中的每个动作片段
     for i in tqdm(range(total_amount)):
+        # 从index.csv获取元数据
         source_path = index_file.loc[i]['source_path']
         new_name = index_file.loc[i]['new_name']
+
+        # 加载之前生成的关节数据
         data = np.load(source_path)
         start_frame = index_file.loc[i]['start_frame']
         end_frame = index_file.loc[i]['end_frame']
+
+        # 数据集特定处理
         if 'humanact12' not in source_path:
             if 'Eyes_Japan_Dataset' in source_path:
                 data = data[3 * fps:]
@@ -199,12 +226,10 @@ else:
             data = data[start_frame:end_frame]
             data[..., 0] *= -1
 
+        # 创建镜像版本并保存
         data_m = swap_left_right(data)
-
-        #     save_path = pjoin(save_dir, )
-
-        np.save(pjoin(save_dir, new_name), data)
-        np.save(pjoin(save_dir, 'M' + new_name), data_m)
+        np.save(pjoin(save_dir, new_name), data)  # 原始
+        np.save(pjoin(save_dir, 'M' + new_name), data_m)  # 镜像
 
 # ====================================================================================================
 
@@ -231,8 +256,10 @@ else:
         src_offset = src_skel.get_offsets_joints(torch.from_numpy(positions[0]))
         src_offset = src_offset.numpy()
         tgt_offset = target_offset.numpy()
+
         # print(src_offset)
         # print(tgt_offset)
+
         '''Calculate Scale Ratio as the ratio of legs'''
         src_leg_len = np.abs(src_offset[l_idx1]).max() + np.abs(src_offset[l_idx2]).max()
         tgt_leg_len = np.abs(tgt_offset[l_idx1]).max() + np.abs(tgt_offset[l_idx2]).max()
