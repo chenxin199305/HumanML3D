@@ -129,5 +129,18 @@ else
 fi
 echo ""
 
+# Unzip the humanact12.zip file
+echo "Unzipping the humanact12 model..."
+HUMANACT12_ZIP="pose_data/humanact12.zip"
+HUMANACT12_UNZIP_PARENT_DIR="pose_data"
+HUMANACT12_UNZIP_DIR="pose_data/humanact12"
+
+if [ ! -d "$HUMANACT12_UNZIP_DIR" ]; then
+    unzip $HUMANACT12_ZIP -d $HUMANACT12_UNZIP_PARENT_DIR
+else
+    echo "humanact12 model already unzipped."
+fi
+echo ""
+
 # Success message
 echo "All packages installed and datasets downloaded successfully."

@@ -6,3 +6,5 @@ download/
 motion_data/
 body_model/
 pose_data/
+
+joints/
