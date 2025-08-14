@@ -30,6 +30,7 @@ import torch.nn as nn
 from human_body_prior.body_model.lbs import lbs
 import sys
 
+
 class BodyModel(nn.Module):
 
     def __init__(self,
@@ -52,7 +53,6 @@ class BodyModel(nn.Module):
         '''
 
         self.dtype = dtype
-
 
         # -- Load SMPL params --
         if '.npz' in bm_fname:
@@ -132,38 +132,38 @@ class BodyModel(nn.Module):
         weights = smpl_dict['weights']
         self.comp_register('weights', torch.tensor(weights, dtype=dtype), persistent=persistant_buffer)
 
-        self.comp_register('init_trans', torch.zeros((1,3), dtype=dtype), persistent=persistant_buffer)
+        self.comp_register('init_trans', torch.zeros((1, 3), dtype=dtype), persistent=persistant_buffer)
         # self.register_parameter('trans', nn.Parameter(trans, requires_grad=True))
 
         # root_orient
         # if self.model_type in ['smpl', 'smplh']:
-        self.comp_register('init_root_orient', torch.zeros((1,3), dtype=dtype), persistent=persistant_buffer)
+        self.comp_register('init_root_orient', torch.zeros((1, 3), dtype=dtype), persistent=persistant_buffer)
 
         # pose_body
         if self.model_type in ['smpl', 'smplh', 'smplx']:
-            self.comp_register('init_pose_body', torch.zeros((1,63), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_body', torch.zeros((1, 63), dtype=dtype), persistent=persistant_buffer)
         elif self.model_type == 'animal_horse':
-            self.comp_register('init_pose_body', torch.zeros((1,105), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_body', torch.zeros((1, 105), dtype=dtype), persistent=persistant_buffer)
         elif self.model_type == 'animal_dog':
-            self.comp_register('init_pose_body', torch.zeros((1,102), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_body', torch.zeros((1, 102), dtype=dtype), persistent=persistant_buffer)
 
         # pose_hand
         if self.model_type in ['smpl']:
-            self.comp_register('init_pose_hand', torch.zeros((1,1*3*2), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_hand', torch.zeros((1, 1 * 3 * 2), dtype=dtype), persistent=persistant_buffer)
         elif self.model_type in ['smplh', 'smplx']:
-            self.comp_register('init_pose_hand', torch.zeros((1,15*3*2), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_hand', torch.zeros((1, 15 * 3 * 2), dtype=dtype), persistent=persistant_buffer)
         elif self.model_type in ['mano']:
-            self.comp_register('init_pose_hand', torch.zeros((1,15*3), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_hand', torch.zeros((1, 15 * 3), dtype=dtype), persistent=persistant_buffer)
 
         # face poses
         if self.model_type == 'smplx':
-            self.comp_register('init_pose_jaw', torch.zeros((1,1*3), dtype=dtype), persistent=persistant_buffer)
-            self.comp_register('init_pose_eye', torch.zeros((1,2*3), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_jaw', torch.zeros((1, 1 * 3), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_pose_eye', torch.zeros((1, 2 * 3), dtype=dtype), persistent=persistant_buffer)
 
-        self.comp_register('init_betas', torch.zeros((1,num_betas), dtype=dtype), persistent=persistant_buffer)
+        self.comp_register('init_betas', torch.zeros((1, num_betas), dtype=dtype), persistent=persistant_buffer)
 
         if self.use_dmpl:
-            self.comp_register('init_dmpls', torch.zeros((1,num_dmpls), dtype=dtype), persistent=persistant_buffer)
+            self.comp_register('init_dmpls', torch.zeros((1, num_dmpls), dtype=dtype), persistent=persistant_buffer)
 
     def comp_register(self, name, value, persistent=False):
         if sys.version_info[0] > 2:
@@ -175,10 +175,22 @@ class BodyModel(nn.Module):
         from human_body_prior.tools.omni_tools import copy2cpu as c2c
         return c2c(self.forward().v)
 
-    def forward(self, root_orient=None, pose_body=None, pose_hand=None, pose_jaw=None, pose_eye=None, betas=None,
-                trans=None, dmpls=None, expression=None, v_template =None, joints=None, v_shaped=None, return_dict=False,  **kwargs):
+    def forward(self,
+                root_orient=None,
+                pose_body=None,
+                pose_hand=None,
+                pose_jaw=None,
+                pose_eye=None,
+                betas=None,
+                trans=None,
+                dmpls=None,
+                expression=None,
+                v_template=None,
+                joints=None,
+                v_shaped=None,
+                return_dict=False,
+                **kwargs):
         '''
-
         :param root_orient: Nx3
         :param pose_body:
         :param pose_hand:
@@ -189,7 +201,7 @@ class BodyModel(nn.Module):
         '''
         batch_size = 1
         # compute batchsize by any of the provided variables
-        for arg in [root_orient,pose_body,pose_hand,pose_jaw,pose_eye,betas,trans, dmpls,expression, v_template,joints]:
+        for arg in [root_orient, pose_body, pose_hand, pose_jaw, pose_eye, betas, trans, dmpls, expression, v_template, joints]:
             if arg is not None:
                 batch_size = arg.shape[0]
                 break
@@ -206,15 +218,15 @@ class BodyModel(nn.Module):
             if pose_hand is None:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
             if pose_jaw is None:  pose_jaw = self.init_pose_jaw.expand(batch_size, -1)
             if pose_eye is None:  pose_eye = self.init_pose_eye.expand(batch_size, -1)
-        elif self.model_type in ['mano',]:
+        elif self.model_type in ['mano', ]:
             if pose_hand is None:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
-        elif self.model_type in ['animal_horse','animal_dog']:
+        elif self.model_type in ['animal_horse', 'animal_dog']:
             if pose_body is None:  pose_body = self.init_pose_body.expand(batch_size, -1)
 
         if pose_hand is None and self.model_type not in ['animal_horse', 'animal_dog']:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
 
         if trans is None: trans = self.init_trans.expand(batch_size, -1)
-        if v_template is None: v_template = self.init_v_template.expand(batch_size, -1,-1)
+        if v_template is None: v_template = self.init_v_template.expand(batch_size, -1, -1)
         if betas is None: betas = self.init_betas.expand(batch_size, -1)
 
         if self.model_type in ['smplh', 'smpl']:
@@ -239,10 +251,10 @@ class BodyModel(nn.Module):
             shapedirs = self.shapedirs
 
         verts, Jtr = lbs(betas=shape_components, pose=full_pose, v_template=v_template,
-                            shapedirs=shapedirs, posedirs=self.posedirs,
-                            J_regressor=self.J_regressor, parents=self.kintree_table[0].long(),
-                            lbs_weights=self.weights, joints=joints, v_shaped=v_shaped,
-                            dtype=self.dtype)
+                         shapedirs=shapedirs, posedirs=self.posedirs,
+                         J_regressor=self.J_regressor, parents=self.kintree_table[0].long(),
+                         lbs_weights=self.weights, joints=joints, v_shaped=v_shaped,
+                         dtype=self.dtype)
 
         Jtr = Jtr + trans.unsqueeze(dim=1)
         verts = verts + trans.unsqueeze(dim=1)
@@ -277,5 +289,3 @@ class BodyModel(nn.Module):
             res = res_class
 
         return res
-
-
