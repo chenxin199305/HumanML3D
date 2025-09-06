@@ -142,5 +142,16 @@ else
 fi
 echo ""
 
+# Create folder named "joints"
+echo "Creating folder named 'joints'..."
+JOINTS_DIR="joints"
+
+if [ ! -d "$JOINTS_DIR" ]; then
+    mkdir -p $JOINTS_DIR
+else
+    echo "'joints' folder already exists."
+fi
+echo ""
+
 # Success message
 echo "All packages installed and datasets downloaded successfully."
