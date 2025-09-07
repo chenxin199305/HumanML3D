@@ -33,20 +33,24 @@ import sys
 
 class BodyModel(nn.Module):
 
-    def __init__(self,
-                 bm_fname,
-                 num_betas=10,
-                 num_dmpls=None,
-                 dmpl_fname=None,
-                 num_expressions=80,
-                 use_posedirs=True,
-                 dtype=torch.float32,
-                 persistant_buffer=False):
+    def __init__(
+            self,
+            # SMPL parameters
+            smpl_file_path,
+            # DMPL parameters (optional)
+            dmpl_file_path=None,
+            num_betas=10,
+            num_dmpls=None,
+            num_expressions=80,
+            use_posedirs=True,
+            dtype=torch.float32,
+            persistant_buffer=False
+    ):
 
         super(BodyModel, self).__init__()
 
         '''
-        :param bm_fname: path to a SMPL model as pkl file
+        :param smpl_file_path: path to a SMPL model as pkl file
         :param num_betas: number of shape parameters to include.
         :param device: default on gpu
         :param dtype: float precision of the computations
@@ -56,10 +60,10 @@ class BodyModel(nn.Module):
         self.dtype = dtype
 
         # -- Load SMPL params --
-        if '.npz' in bm_fname:
-            smpl_dict = np.load(bm_fname, encoding='latin1')
+        if '.npz' in smpl_file_path:
+            smpl_dict = np.load(smpl_file_path, encoding='latin1')
         else:
-            raise ValueError('bm_fname should be either a .pkl nor .npz file')
+            raise ValueError('smpl_file_path should be either a .pkl nor .npz file')
 
         # these are supposed for later convenient look up
         self.num_betas = num_betas
@@ -85,10 +89,10 @@ class BodyModel(nn.Module):
 
         self.use_dmpl = False
         if num_dmpls is not None:
-            if dmpl_fname is not None:
+            if dmpl_file_path is not None:
                 self.use_dmpl = True
             else:
-                raise (ValueError('dmpl_fname should be provided when using dmpls!'))
+                raise (ValueError('dmpl_file_path should be provided when using dmpls!'))
 
         if self.use_dmpl and self.model_type in ['smplx', 'mano', 'animal_horse', 'animal_dog']: raise (
             NotImplementedError('DMPLs only work with SMPL/SMPLH models for now.'))
@@ -124,7 +128,7 @@ class BodyModel(nn.Module):
             pass
 
         if self.use_dmpl:
-            dmpldirs = np.load(dmpl_fname)['eigvec']
+            dmpldirs = np.load(dmpl_file_path)['eigvec']
 
             dmpldirs = dmpldirs[:, :, :num_dmpls]
             self.comp_register('dmpldirs', torch.tensor(dmpldirs, dtype=dtype), persistent=persistant_buffer)

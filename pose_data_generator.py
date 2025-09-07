@@ -5,7 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from human_body_prior.tools.omni_tools import copy2cpu as c2c
+from human_body_prior.tools.omni_tools import copy2cpu
 
 flag_run_raw_pose_processing = True
 flag_run_motion_representation = True
@@ -31,30 +31,68 @@ else:
     Jason 2025-08-14:
     SMPL（Skinned Multi-Person Linear Model）和DMPL（Dynamic SMPL）是三维人体建模中紧密关联但功能侧重点不同的模型，
     它们在计算机图形学、动画、虚拟现实等领域有重要应用。
-    
-    - SMPL是一种参数化人体模型，通过解耦形状（shape）和姿态（pose）参数生成三维人体网格（含6890个顶点）。
-    - DMPL是SMPL的动态扩展版本，在保留基础参数（β, θ）的基础上，增加了对软组织动力学（如肌肉颤动、脂肪抖动）的模拟能力。
-    """
-    male_bm_path = 'body_model/smplh/male/model.npz'
-    male_dmpl_path = 'body_model/dmpls/male/model.npz'
 
-    female_bm_path = 'body_model/smplh/female/model.npz'
-    female_dmpl_path = 'body_model/dmpls/female/model.npz'
+    SMPL:    
+    - SMPL是一种参数化人体模型，通过解耦形状（shape）和姿态（pose）参数生成三维人体网格（含6890个顶点）。
+    - SMPL（Skinned Multi-Person Linear Model）：静态人体模型。它负责生成一个“静止”的、具有正确肌肉线条和皮肤蒙皮的人体三维网格。
+    - 输入：它的参数主要控制形状（Shape） 和姿态（Pose）。
+        - β (Shape参数): 一个10维或300维的向量，控制人的高矮胖瘦等体型特征。
+        - θ (Pose参数): 一个72维的向量（24个关节，每个关节3个轴的角度），控制人体的全局旋转和24个关节的旋转。 
+    - 输出：
+        - 一个包含6890个顶点的三维人体网格。
+
+    DMPL:
+    - DMPL（Dynamic Multi-Person Linear Model）：动态软组织模型。它本身不生成完整的人体网格，而是为SMPL模型增加软组织在运动过程中的动态变形效果，如肌肉的收缩、膨胀和抖动。
+    - 它的参数主要控制软组织运动（Soft Tissue Movement）。
+    - 输入：DMPL是SMPL的动态扩展版本，在保留基础参数（β, θ）的基础上，增加了对软组织动力学（如肌肉颤动、脂肪抖动）的模拟能力。
+        - β (Shape参数): 与SMPL共享相同的形状参数。
+        - θ (Pose参数): 与SMPL共享相同的姿态参数。
+        - ψ (DMPL参数): 一个4维或8维的向量，可以理解为控制“肌肉兴奋度”的参数，用于驱动软组织的动态效果。【新增】
+    - 输出：
+        - 不是完整的网格，而是一组顶点偏移量（Vertex Offsets）。
+        - 这些偏移量描述了由于软组织运动（如肌肉收缩、脂肪抖动）每个顶点应该移动的方向和距离。
+
+    它们的配合使用可以概括为：以SMPL为基础，用DMPL的参数为其增添动态细节。
+    SMPL和DMPL配合使用的最终目标是生成一个既包含正确姿态和形状，又包含逼真软组织动态的顶点位置 V_final。
+    其数学表达可以简化为：
+    - V_final = SMPL(β, θ) + DMPL(β, θ, ψ)
+    
+    步骤分解：
+    1. 生成基础网格：
+        - 首先，将形状参数 β 和姿态参数 θ 输入到标准的SMPL模型中，计算得到基础的三维网格顶点位置 V_smpl。
+        - V_smpl = SMPL(β, θ)
+    2. 计算动态偏移：
+        - 将相同的 β 和 θ，再加上DMPL专属的参数 ψ，一起输入到DMPL模型中。DMPL模型会输出一个与 V_smpl 顶点数量相同（6890个）的偏移量向量 ΔV_dmpl。
+        - ΔV_dmpl = DMPL(β, θ, ψ)
+    3. 合成最终网格：
+        - 将SMPL生成的基础网格顶点与DMPL计算出的动态偏移量相加，得到最终的、具有动态细节的顶点位置。
+        - V_final = V_smpl + ΔV_dmpl
+    4. 蒙皮与渲染：
+        - 使用SMPL原有的蒙皮权重函数，对最终的顶点 V_final 进行蒙皮，并将其渲染成图像或用于其他应用。
+        注意，蒙皮权重是在 V_smpl 上定义的，但直接应用于 V_final 也能得到合理的效果，因为 ΔV_dmpl 是相对偏移。
+        
+    这种SMPL+DMPL的模型组合（有时被统称为SMPL-D）
+    """
+    male_body_model_smplh_path = 'body_model/smplh/male/model.npz'
+    male_body_model_dmpl_path = 'body_model/dmpls/male/model.npz'
+
+    female_body_model_smplh_path = 'body_model/smplh/female/model.npz'
+    female_body_model_dmpl_path = 'body_model/dmpls/female/model.npz'
 
     num_betas = 10  # number of body parameters 形状参数（β）：控制身高、体型（胖瘦）等静态特征，通过PCA降维实现高效参数化
     num_dmpls = 8  # number of DMPL parameters
 
-    male_bm = BodyModel(bm_fname=male_bm_path,
+    male_bm = BodyModel(smpl_file_path=male_body_model_smplh_path,
+                        dmpl_file_path=male_body_model_dmpl_path,
                         num_betas=num_betas,
-                        num_dmpls=num_dmpls,
-                        dmpl_fname=male_dmpl_path).to(comp_device)
+                        num_dmpls=num_dmpls, ).to(comp_device)
 
-    faces = c2c(male_bm.f)
+    faces = copy2cpu(male_bm.f)
 
-    female_bm = BodyModel(bm_fname=female_bm_path,
+    female_bm = BodyModel(smpl_file_path=female_body_model_smplh_path,
+                          dmpl_file_path=female_body_model_dmpl_path,
                           num_betas=num_betas,
-                          num_dmpls=num_dmpls,
-                          dmpl_fname=female_dmpl_path).to(comp_device)
+                          num_dmpls=num_dmpls, ).to(comp_device)
 
     # 递归扫描 AMASS 数据集目录
     # 收集所有数据文件的路径
