@@ -27,6 +27,7 @@ import torch
 from torch.utils.data import Dataset
 from configer import Configer
 
+
 class VPoserDS(Dataset):
     """AMASS: a pytorch loader for unified human motion capture dataset. http://amass.is.tue.mpg.de/"""
 
@@ -34,7 +35,7 @@ class VPoserDS(Dataset):
         assert os.path.exists(dataset_dir)
         self.ds = {}
         for data_fname in glob.glob(os.path.join(dataset_dir, '*.pt')):
-            k = os.path.basename(data_fname).replace('.pt','')
+            k = os.path.basename(data_fname).replace('.pt', '')
             if len(data_fields) != 0 and k not in data_fields: continue
             self.ds[k] = torch.load(data_fname).type(torch.float32)
 
@@ -52,4 +53,3 @@ class VPoserDS(Dataset):
     def fetch_data(self, idx):
         data = {k: self.ds[k][idx] for k in self.ds.keys()}
         return data
-

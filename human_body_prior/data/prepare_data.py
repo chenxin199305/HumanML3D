@@ -38,6 +38,8 @@ from human_body_prior.tools.omni_tools import logger_sequencer
 import pickle
 from configer import Configer
 from tqdm import tqdm
+
+
 # import tables as pytables
 
 
@@ -61,13 +63,13 @@ def dataset_exists(dataset_dir, split_names=None):
 
     done = []
     for split_name in split_names:
-        for k in ['root_orient', 'pose_body']:#, 'betas', 'trans', 'joints']:
+        for k in ['root_orient', 'pose_body']:  # , 'betas', 'trans', 'joints']:
             outfname = os.path.join(dataset_dir, split_name, '%s.pt' % k)
             done.append(os.path.exists(outfname))
     return np.all(done)
 
-def prepare_vposer_datasets(vposer_dataset_dir, amass_splits, amass_dir, logger=None):
 
+def prepare_vposer_datasets(vposer_dataset_dir, amass_splits, amass_dir, logger=None):
     if dataset_exists(vposer_dataset_dir):
         if logger is not None: logger('VPoser dataset already exists at {}'.format(vposer_dataset_dir))
         return
@@ -107,7 +109,7 @@ def prepare_vposer_datasets(vposer_dataset_dir, amass_splits, amass_dir, logger=
                 cdata_ids = np.random.choice(list(range(int(0.1 * N), int(0.9 * N), 1)), int(keep_rate * 0.8 * N), replace=False)
                 if len(cdata_ids) < 1: continue
                 fullpose = cdata['poses'][cdata_ids].astype(np.float32)
-                yield {'pose_body': fullpose[:,3:66], 'root_orient': fullpose[:,:3]}
+                yield {'pose_body': fullpose[:, 3:66], 'root_orient': fullpose[:, :3]}
 
     for split_name, ds_names in amass_splits.items():
         if dataset_exists(vposer_dataset_dir, split_names=[split_name]): continue
@@ -127,7 +129,7 @@ def prepare_vposer_datasets(vposer_dataset_dir, amass_splits, amass_dir, logger=
         logger('{} datapoints dumped for split {}. ds_meta_pklpath: {}'.format(len(v), split_name, osp.join(vposer_dataset_dir, split_name)))
 
     Configer(**{
-        'amass_splits':amass_splits.toDict(),
+        'amass_splits': amass_splits.toDict(),
         'amass_dir': amass_dir,
     }).dump_settings(makepath(vposer_dataset_dir, 'settings.ini', isfile=True))
 

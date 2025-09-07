@@ -82,17 +82,17 @@ else:
     num_betas = 10  # number of body parameters 形状参数（β）：控制身高、体型（胖瘦）等静态特征，通过PCA降维实现高效参数化
     num_dmpls = 8  # number of DMPL parameters
 
-    male_bm = BodyModel(smpl_file_path=male_body_model_smplh_path,
-                        dmpl_file_path=male_body_model_dmpl_path,
-                        num_betas=num_betas,
-                        num_dmpls=num_dmpls, ).to(comp_device)
+    male_body_model = BodyModel(smpl_file_path=male_body_model_smplh_path,
+                                dmpl_file_path=male_body_model_dmpl_path,
+                                num_betas=num_betas,
+                                num_dmpls=num_dmpls, ).to(comp_device)
 
-    faces = copy2cpu(male_bm.f)
+    faces = copy2cpu(male_body_model.f)
 
-    female_bm = BodyModel(smpl_file_path=female_body_model_smplh_path,
-                          dmpl_file_path=female_body_model_dmpl_path,
-                          num_betas=num_betas,
-                          num_dmpls=num_dmpls, ).to(comp_device)
+    female_body_model = BodyModel(smpl_file_path=female_body_model_smplh_path,
+                                  dmpl_file_path=female_body_model_dmpl_path,
+                                  num_betas=num_betas,
+                                  num_dmpls=num_dmpls, ).to(comp_device)
 
     # 递归扫描 AMASS 数据集目录
     # 收集所有数据文件的路径
@@ -140,9 +140,9 @@ else:
         frame_id = 0  # frame id of the mocap sequence
         pose_seq = []
         if bdata['gender'] == 'male':
-            bm = male_bm
+            body_model_object = male_body_model
         else:
-            bm = female_bm
+            body_model_object = female_body_model
 
         # 降采样处理 (120fps -> 20fps)
         down_sample = int(fps / ex_fps)
@@ -163,7 +163,7 @@ else:
 
         # 通过人体模型计算关节位置
         with torch.no_grad():
-            body = bm(**body_parms)
+            body = body_model_object(**body_parms)
 
         # 坐标系转换 (Y-up -> Z-up)
         pose_seq_np = body.Jtr.detach().cpu().numpy()

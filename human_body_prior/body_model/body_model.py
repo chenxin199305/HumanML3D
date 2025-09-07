@@ -46,16 +46,21 @@ class BodyModel(nn.Module):
             dtype=torch.float32,
             persistant_buffer=False
     ):
-
-        super(BodyModel, self).__init__()
-
         '''
+        初始化方法负责加载模型参数并设置初始状态：
+        - 模型文件加载：从NPZ文件加载SMPL模型参数
+        - 模型类型识别：根据关节数量自动识别模型类型（SMPL:69, SMPL-H:153, SMPL-X:162等）
+        - 参数初始化：注册各种模型参数为PyTorch缓冲区（buffer）
+        - 组件注册：使用comp_register方法将参数注册为模型的持久化缓冲区
+
         :param smpl_file_path: path to a SMPL model as pkl file
         :param num_betas: number of shape parameters to include.
         :param device: default on gpu
         :param dtype: float precision of the computations
-        :return: verts, trans, pose, betas 
+        :return: verts, trans, pose, betas
         '''
+
+        super(BodyModel, self).__init__()
 
         self.dtype = dtype
 
@@ -220,6 +225,13 @@ class BodyModel(nn.Module):
                 return_dict=False,
                 **kwargs):
         '''
+        前向传播方法接收各种人体参数并计算最终的网格顶点：
+        - 参数处理：处理各种可选参数，设置默认值
+        - 姿势组合：将各部位姿势组合成完整姿势向量
+        - 形状组合：组合beta形状参数和DMPL/表情参数
+        - LBS计算：调用线性混合蒙皮(LBS)计算最终顶点位置
+        - 结果返回：返回顶点、面、关节位置等信息
+
         :param root_orient: Nx3
         :param pose_body:
         :param pose_hand:
@@ -229,6 +241,7 @@ class BodyModel(nn.Module):
         :return:
         '''
         batch_size = 1
+
         # compute batchsize by any of the provided variables
         for arg in [root_orient, pose_body, pose_hand, pose_jaw, pose_eye, betas, trans, dmpls, expression, v_template, joints]:
             if arg is not None:
@@ -255,16 +268,19 @@ class BodyModel(nn.Module):
         else:
             pass
 
-        if pose_hand is None and self.model_type not in ['animal_horse', 'animal_dog']:  pose_hand = self.init_pose_hand.expand(batch_size, -1)
+        if pose_hand is None and self.model_type not in ['animal_horse', 'animal_dog']:
+            pose_hand = self.init_pose_hand.expand(batch_size, -1)
 
         if trans is None: trans = self.init_trans.expand(batch_size, -1)
         if v_template is None: v_template = self.init_v_template.expand(batch_size, -1, -1)
         if betas is None: betas = self.init_betas.expand(batch_size, -1)
 
+        full_pose = None
         if self.model_type in ['smplh', 'smpl']:
             full_pose = torch.cat([root_orient, pose_body, pose_hand], dim=-1)
         elif self.model_type == 'smplx':
-            full_pose = torch.cat([root_orient, pose_body, pose_jaw, pose_eye, pose_hand], dim=-1)  # orient:3, body:63, jaw:3, eyel:3, eyer:3, handl, handr
+            # orient:3, body:63, jaw:3, eyel:3, eyer:3, handl, handr
+            full_pose = torch.cat([root_orient, pose_body, pose_jaw, pose_eye, pose_hand], dim=-1)
         elif self.model_type in ['mano', ]:
             full_pose = torch.cat([root_orient, pose_hand], dim=-1)
         elif self.model_type in ['animal_horse', 'animal_dog']:
@@ -284,11 +300,45 @@ class BodyModel(nn.Module):
             shape_components = betas
             shapedirs = self.shapedirs
 
-        verts, Jtr = lbs(betas=shape_components, pose=full_pose, v_template=v_template,
-                         shapedirs=shapedirs, posedirs=self.posedirs,
-                         J_regressor=self.J_regressor, parents=self.kintree_table[0].long(),
-                         lbs_weights=self.weights, joints=joints, v_shaped=v_shaped,
-                         dtype=self.dtype)
+        """
+        LBS 是什么？
+        - 线性混合蒙皮（Linear Blend Skinning），也称为骨骼动画（Skeletal Animation） 或刚体蒙皮（Rigid Skinning），
+            是计算机图形学和计算机动画中最核心、最广泛应用的技术之一。它用于驱动角色（无论是人、动物还是怪物）的变形和运动。
+            
+        骨骼（Skeleton）：
+        - 这是一个由关节（Joints） 和骨骼（Bones） 组成的层次化结构（通常是一个树形结构，称为“ kinematics tree ”或“ kintree ”）。
+        - 每个关节的变换（旋转、平移）会影响到其所有子关节和子骨骼。例如，转动肩膀，整个手臂（肘部、手腕、手）都会跟着动。
+        - 在SMPL模型中，这对应着 kintree_table。
+
+        蒙皮网格（Skinned Mesh）：
+        - 这是用户最终看到的3D模型表面，由顶点（Vertices）和面（Faces）构成。
+        - 在LBS中，网格顶点不直接定义自己的位置，而是通过骨骼来驱动。
+
+        蒙皮权重（Skinning Weights）：
+        - 这是LBS的“魔法”所在。每个顶点都关联到一根或多根骨骼，并拥有一个对应的权重（Weight），表示该骨骼对顶点影响力的大小。
+        - 权重通常在 [0, 1] 范围内，并且对于一个顶点，所有影响它的骨骼的权重之和为1。
+        - 例如，手腕处的一个顶点可能主要受手腕关节影响（权重0.8），但也稍微受小臂关节影响（权重0.2），这使得在手腕弯曲时，变形会更加平滑自然。
+
+        在SMPL模型中，这对应着 weights 矩阵。
+        - 绑定姿势（Bind Pose） / T-Pose：
+        - 这是骨骼和网格的初始参考姿势。通常是一个易于建模和绑定的姿势，如著名的“T-Pose”。
+        - 在这个姿势下，每个关节都有一个逆绑定矩阵（Inverse Bind Matrix），记为 $G_{j}^{-1}$。这个矩阵的作用是：将顶点从世界坐标变换到对应关节的局部空间坐标。
+        
+        模板网格 v_template
+        """
+        verts, Jtr = lbs(
+            betas=shape_components,
+            pose=full_pose,
+            v_template=v_template,
+            shapedirs=shapedirs,
+            posedirs=self.posedirs,
+            J_regressor=self.J_regressor,
+            parents=self.kintree_table[0].long(),
+            lbs_weights=self.weights,
+            joints=joints,
+            v_shaped=v_shaped,
+            dtype=self.dtype,
+        )
 
         Jtr = Jtr + trans.unsqueeze(dim=1)
         verts = verts + trans.unsqueeze(dim=1)

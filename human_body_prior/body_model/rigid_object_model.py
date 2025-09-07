@@ -32,6 +32,7 @@ from human_body_prior.body_model.lbs import lbs
 from psbody.mesh import Mesh
 from human_body_prior.body_model.lbs import batch_rodrigues
 
+
 class RigidObjectModel(nn.Module):
 
     def __init__(self, plpath, batch_size=1, dtype=torch.float32):
@@ -51,13 +52,14 @@ class RigidObjectModel(nn.Module):
     def forward(self, root_orient, trans):
         if root_orient is None: root_orient = self.root_orient
         if trans is None: trans = self.trans
-        verts = torch.bmm(self.rigid_v, batch_rodrigues(root_orient)) + trans.view(-1,1,3)
+        verts = torch.bmm(self.rigid_v, batch_rodrigues(root_orient)) + trans.view(-1, 1, 3)
 
         res = {}
         res['v'] = verts
         res['f'] = self.f
 
-        class result_meta(object): pass
+        class result_meta(object):
+            pass
 
         res_class = result_meta()
         for k, v in res.items():

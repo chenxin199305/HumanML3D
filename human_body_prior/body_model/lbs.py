@@ -29,6 +29,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+
 def to_tensor(array, dtype=torch.float32):
     if 'torch.tensor' not in str(type(array)):
         return torch.tensor(array, dtype=dtype)
@@ -162,7 +163,7 @@ def vertices2landmarks(vertices, faces, lmk_faces_idx, lmk_bary_coords):
 
 
 def lbs(betas, pose, v_template, shapedirs, posedirs, J_regressor, parents,
-        lbs_weights, joints = None, pose2rot=True, v_shaped=None, dtype=torch.float32):
+        lbs_weights, joints=None, pose2rot=True, v_shaped=None, dtype=torch.float32):
     ''' Performs Linear Blend Skinning with the given shape and pose parameters
 
         Parameters
@@ -295,7 +296,7 @@ def blend_shapes(betas, shape_disps):
     # i.e. Multiply each shape displacement by its corresponding beta and
     # then sum them.
 
-    #print(betas.device,shape_disps.device)
+    # print(betas.device,shape_disps.device)
     blend_shape = torch.einsum('bl,mkl->bmk', [betas, shape_disps])
     return blend_shape
 
