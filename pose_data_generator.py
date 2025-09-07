@@ -86,13 +86,12 @@ else:
                                 dmpl_file_path=male_body_model_dmpl_path,
                                 num_betas=num_betas,
                                 num_dmpls=num_dmpls, ).to(comp_device)
-
-    faces = copy2cpu(male_body_model.f)
-
     female_body_model = BodyModel(smpl_file_path=female_body_model_smplh_path,
                                   dmpl_file_path=female_body_model_dmpl_path,
                                   num_betas=num_betas,
                                   num_dmpls=num_dmpls, ).to(comp_device)
+
+    faces = copy2cpu(male_body_model.f)  # Jason 2025-09-06: 面部信息，好像没用上
 
     # 递归扫描 AMASS 数据集目录
     # 收集所有数据文件的路径

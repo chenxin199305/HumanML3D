@@ -232,13 +232,21 @@ class BodyModel(nn.Module):
         - LBS计算：调用线性混合蒙皮(LBS)计算最终顶点位置
         - 结果返回：返回顶点、面、关节位置等信息
 
-        :param root_orient: Nx3
-        :param pose_body:
-        :param pose_hand:
-        :param pose_jaw:
-        :param pose_eye:
-        :param kwargs:
-        :return:
+        :param root_orient: 根关节朝向
+        :param pose_body: 身体姿态
+        :param pose_hand: 手部姿态
+        :param pose_jaw: 下颌姿态
+        :param pose_eye: 眼睛姿态
+        :param betas: 形状参数, 控制人体的整体形状特征
+        :param expression: 表情参数, 仅适用于SMPL-X模型，控制面部表情变化
+        :param dmpls: 动态形状参数, 仅适用于SMPL/SMPL-H模型，捕捉更细微的形状变化
+        :param trans: 平移参数, 控制人体在3D空间中的位置
+        :param v_template: 模板网格顶点, 可选参数，允许用户提供自定义的模板网格
+        :param joints: 关节位置, 可选参数，允许用户提供自定义的关节位置
+        :param v_shaped: 变形后的网格顶点, 可选参数，允许用户提供预变形的网格顶点
+        :param return_dict: 是否以字典形式返回结果
+        :param kwargs: 其他可选参数
+        :return: 包含顶点、面、关节位置等信息的字典或对象
         '''
         batch_size = 1
 
