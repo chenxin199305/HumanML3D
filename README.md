@@ -9,20 +9,15 @@ actions such as daily activities (e.g., 'walking', 'jumping'), sports (e.g., 'sw
 </div>
 
 <br>
-<details> 
+<details>
 
-**<summary>Statistics of HumanML3D</summary>**
+## Motion Datasets
+### AMASS Dataset
 
-### :bar_chart: Statistics
+AMASS (Archive of Motion Capture as Surface Shapes) is a large-scale motion capture dataset that unifies a number of existing motion capture datasets into a common format. It provides a comprehensive collection of human motion data
 
-Each motion clip in HumanML3D comes with 3-4 single sentence descriptions annotated on Amazon Mechanical Turk. Motions are downsampled into 20 fps, with each clip lasting from 2 to 10 seconds.
-
-Overall, HumanML3D dataset consists of **14,616** motions and **44,970** descriptions composed by **5,371** distinct words. The total length of motions amounts to **28.59** hours. The average motion length is **7.1** seconds, while average
-description length is **12** words.
-
-### :chart_with_upwards_trend: Data augmentation
-
-We double the size of HumanML3D dataset by mirroring all motions and properly replacing certain keywords in the descriptions (e.g., 'left'->'right', 'clockwise'->'counterclockwise').
+Related content:
+- https://github.com/nghorbani/amass
 
 ### KIT-ML Dataset
 
@@ -32,7 +27,7 @@ and provide the access in this repository. However, if you would like to use KIT
 
 If this dataset is usefule in your projects, we will apprecite your star on this codebase. 😆😆
 
-## Checkout Our Works on HumanML3D
+## Other Works on HumanML3D
 
 :ok_woman: [T2M](https://ericguo5513.github.io/text-to-motion) - The first work on HumanML3D that learns to generate 3D motion from textual descriptions, with *temporal VAE*.  
 :running: [TM2T](https://ericguo5513.github.io/TM2T) - Learns the mutual mapping between texts and motions through the discrete motion token.  
