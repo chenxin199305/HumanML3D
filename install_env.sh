@@ -40,9 +40,9 @@ pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web
 echo ""
 
 # Install packages from urls
-pip install git+https://github.com/nghorbani/body_visualizer.git
-pip install git+https://github.com/MPI-IS/configer
-pip install git+https://github.com/MPI-IS/mesh.git
+#pip install git+https://github.com/nghorbani/body_visualizer.git
+#pip install git+https://github.com/MPI-IS/configer
+#pip install git+https://github.com/MPI-IS/mesh.git
 
 # Create download folder if it doesn't exist
 DOWNLOAD_DIR="download"

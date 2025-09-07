@@ -55,7 +55,7 @@ Conda environment is needed at first, then run the following command to install 
 
 ```shell
 # Create conda environment
-conda create -n humanml3d python=3.7.10 -y
+conda create -n humanml3d python=3.7 -y
 conda activate humanml3d
 
 # Install required packages
