@@ -49,11 +49,11 @@ You need to clone this repository and install the virtual environment.
 
 **[2022/12/15] Update**: Installing matplotlib=3.3.4 could prevent small deviation of the generated data from reference data. See [Issue](https://github.com/EricGuo5513/HumanML3D/issues/21#issue-1498109924)
 
-### Python Virtual Environment
+### Environment Setup
 
 Conda environment is needed at first, then run the following command to install required packages. Lastly, you need to run the scripts in order to obtain HumanML3D dataset.
 
-```sh
+```shell
 # Create conda environment
 conda create -n humanml3d python=3.7.10 -y
 conda activate humanml3d
