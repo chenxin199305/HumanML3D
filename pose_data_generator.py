@@ -110,6 +110,10 @@ else:
                 dataset_names.append(dataset_name)
             paths.append(os.path.join(root, name))
 
+    print(
+        f"Found {len(paths)} files in {len(folders)} folders from {len(dataset_names)} datasets."
+    )
+
     # 在输出目录中复制AMASS的原始目录结构
     # 使用 exist_ok=True 避免重复创建
     save_root = './pose_data'
@@ -118,13 +122,61 @@ else:
         os.makedirs(folder, exist_ok=True)
     group_path = [[path for path in paths if name in path] for name in dataset_names]
 
-    trans_matrix = np.array([[1.0, 0.0, 0.0],
-                             [0.0, 0.0, 1.0],
-                             [0.0, 1.0, 0.0]])
-    ex_fps = 20
+    print(
+        f"Created {len(save_folders)} folders in {save_root}."
+    )
 
+
+    # --------------------------------------------------
 
     def amass_to_pose(src_path, save_path):
+        """
+        将 AMASS 数据集中的 .npz 文件转换为关节位置 .npy 文件
+
+        :param src_path: 输入的 AMASS .npz 文件路径
+        :param save_path: 输出的关节位置 .npy 文件路径
+        :return: 原始帧率 fps
+        """
+
+        """
+        Y-Up: 
+        - 这意味着世界的“向上”方向，也就是通常代表高度或海拔的方向，是沿着Y轴的正方向。
+        - X轴通常指向“右”，Z轴指向“前”或“屏幕里”。Blender 和 3ds Max 默认使用这种坐标系。
+        - 左手系!!!
+        
+        Z-Up: 
+        - 这意味着世界的“向上”方向是沿着Z轴的正方向。
+        - X轴指向“右”，Y轴指向“前”或“屏幕里”。Unity, Maya (默认)，以及许多CAD软件使用这种坐标系。
+        - 右手系!!!
+        
+        需要转换的数据类型：
+        - 转换不仅仅是简单的顶点位置，还可能包括：
+            - 顶点位置 (Vertex Positions)： 最直接的转换。
+            - 旋转 (Rotations)： 通常用欧拉角(Euler Angles)、四元数(Quaternions)或旋转矩阵(Rotation Matrices)表示。这是转换中最容易出错的部分。
+            - 法线 (Normals) 和 切线 (Tangents)： 描述表面方向的向量。
+            - 动画数据： 关键帧中的位置和旋转数据。
+        - 核心思想： 转换的本质是重新映射坐标轴。我们需要找到一个变换，将旧坐标系的轴映射到新坐标系的轴上。
+        
+        顶点位置 (Point / Position) 的转换
+        - 这是最简单的部分。我们只需要“交换”Y轴和Z轴的值，并注意符号以确保方向正确。
+        
+        假设在原始Y-Up坐标系中有一个点 P_old = (x, y, z)。
+        - 在Z-Up坐标系中，我们希望：
+            - 新的X轴 = 旧的X轴 -> x_new = x_old
+            - 新的Y轴 = 旧的Z轴 -> y_new = z_old
+            - 新的Z轴 = 旧的Y轴 -> z_new = y_old
+        - 但是，这里有一个巨大的陷阱！直接交换会导致手性（Handedness）问题。
+            - 直接交换 (x, y, z) -> (x, z, y) 实际上会执行一个绕X轴旋转-90度的变换，这会改变坐标系的手性（例如，从右手坐标系变成左手坐标系）。
+            - 为了保持手性一致（例如，始终保持为右手坐标系），我们需要在交换后对其中一个轴取反。常见的做法是对新的Y轴（即旧的Z轴）取反：
+        - 标准转换公式：
+            - P_new = (x_old, -z_old, y_old)
+        """
+        # 坐标系转换矩阵 (Y-up -> Z-up)
+        trans_matrix = np.array([[1.0, 0.0, 0.0],
+                                 [0.0, 0.0, 1.0],
+                                 [0.0, 1.0, 0.0]])  # Jason 2025-09-07: 这里没有对手性进行调整!!! 为什么？？？
+        ex_fps = 20
+
         # 加载 AMASS 的 npz 数据
         bdata = np.load(src_path, allow_pickle=True)
         fps = 0
@@ -176,12 +228,14 @@ else:
 
     group_path = group_path
     all_count = sum([len(paths) for paths in group_path])
-    cur_count = 0
+    current_count = 0
 
     # --------------------------------------------------
 
     import time
 
+    # 处理每个数据集
+    # 将 AMASS 数据 .npz 转换为关节位置 .npy
     for paths in group_path:
         dataset_name = paths[0].split('/')[2]
         pbar = tqdm(paths)
@@ -192,8 +246,8 @@ else:
             save_path = save_path[:-3] + 'npy'
             fps = amass_to_pose(path, save_path)
 
-        cur_count += len(paths)
-        print('Processed / All (fps %d): %d/%d' % (fps, cur_count, all_count))
+        current_count += len(paths)
+        print('Processed / All (fps %d): %d/%d' % (fps, current_count, all_count))
         time.sleep(0.5)
 
     # --------------------------------------------------
