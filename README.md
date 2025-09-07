@@ -1,25 +1,33 @@
-# <b>HumanML3D: 3D Human Motion-Language Dataset</b>
+# HumanML3D: 3D Human Motion-Language Dataset
 
-HumanML3D is a 3D human motion-language dataset that originates from a combination of [HumanAct12](https://github.com/EricGuo5513/action-to-motion) and [Amass](https://github.com/EricGuo5513/action-to-motion) dataset. It covers a broad range of human
-actions such as daily activities (e.g., 'walking', 'jumping'), sports (e.g., 'swimming', 'playing golf'), acrobatics (e.g., 'cartwheel') and artistry (e.g., 'dancing').
+HumanML3D is a 3D human motion-language dataset that originates from a combination of
+[HumanAct12](https://github.com/EricGuo5513/action-to-motion) and
+[Amass](https://github.com/EricGuo5513/action-to-motion) dataset.
+
+It covers a broad range of human
+actions such as daily activities (e.g., 'walking', 'jumping'),
+sports (e.g., 'swimming', 'playing golf'),
+acrobatics (e.g., 'cartwheel')
+and artistry (e.g., 'dancing').
 
 <div  align="center">    
   <img src="./dataset_showcase.png"  height = "500" alt="teaser_image" align=center />
 </div>
 
 ## Motion Datasets
+
 ### AMASS Dataset
 
 AMASS (Archive of Motion Capture as Surface Shapes) is a large-scale motion capture dataset that unifies a number of existing motion capture datasets into a common format. It provides a comprehensive collection of human motion data
 
 Related content:
+
 - https://github.com/nghorbani/amass
 
 ### KIT-ML Dataset
 
 [KIT Motion-Language Dataset](https://motion-annotation.humanoids.kit.edu/dataset/) (KIT-ML) is also a related dataset that contains 3,911 motions and 6,278 descriptions. We processed KIT-ML dataset following the same procedures of HumanML3D dataset,
 and provide the access in this repository. However, if you would like to use KIT-ML dataset, please remember to cite the original paper.
-</details>
 
 If this dataset is usefule in your projects, we will apprecite your star on this codebase. 😆😆
 
