@@ -11,7 +11,7 @@ acrobatics (e.g., 'cartwheel')
 and artistry (e.g., 'dancing').
 
 <div  align="center">    
-  <img src="./dataset_showcase.png"  height = "500" alt="teaser_image" align=center />
+  <img src="./document/dataset_showcase.png"  height = "500" alt="teaser_image" align=center />
 </div>
 
 ## Motion Datasets
