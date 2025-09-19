@@ -735,7 +735,7 @@ else:
         return Mean, Std
 
 
-    # The given data is used to double check if you are on the right track.
+    # The given data is used to double-check if you are on the right track.
     reference1 = np.load('./HumanML3D/Mean.npy')
     reference2 = np.load('./HumanML3D/Std.npy')
 

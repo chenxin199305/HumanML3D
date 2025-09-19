@@ -63,6 +63,9 @@ bash install_env.sh
 
 # Run script to generate HumanML3D dataset
 python pose_data_generator.py
+
+# Play the animation to check the data
+python pose_data_animation.py
 ```
 
 > [!NOTE]
