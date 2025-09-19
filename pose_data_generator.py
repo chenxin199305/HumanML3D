@@ -74,6 +74,10 @@ else:
     这种SMPL+DMPL的模型组合（有时被统称为SMPL-D）
     """
 
+    # number of body parameters
+    # 形状参数（β）：控制身高、体型（胖瘦）等静态特征，通过PCA降维实现高效参数化
+    num_betas = 10
+
     # USE: SMPL-H + DMPL model
     # male_body_model_smplh_path = 'body_model/smplh/male/model.npz'
     # male_body_model_dmpl_path = 'body_model/dmpls/male/model.npz'
@@ -81,9 +85,10 @@ else:
     # female_body_model_smplh_path = 'body_model/smplh/female/model.npz'
     # female_body_model_dmpl_path = 'body_model/dmpls/female/model.npz'
     #
-    # num_betas = 10  # number of body parameters 形状参数（β）：控制身高、体型（胖瘦）等静态特征，通过PCA降维实现高效参数化
-    # num_dmpls = 8  # number of DMPL parameters
-    # 
+    # number of DMPL parameters
+    # DMPL参数（ψ）：控制肌肉动态、脂肪抖动等软组织运动，通常维度较低（4或8维）
+    # num_dmpls = 8
+    #
     # male_body_model = BodyModel(smpl_file_path=male_body_model_smplh_path,
     #                             dmpl_file_path=male_body_model_dmpl_path,
     #                             num_betas=num_betas,
@@ -97,8 +102,10 @@ else:
     male_body_model_smplx_path = 'body_model/smplx/SMPLX_MALE.npz'
     female_body_model_smplx_path = 'body_model/smplx/SMPLX_FEMALE.npz'
 
-    male_body_model = BodyModel(smpl_file_path=male_body_model_smplx_path).to(comp_device)
-    female_body_model = BodyModel(smpl_file_path=female_body_model_smplx_path).to(comp_device)
+    male_body_model = BodyModel(smpl_file_path=male_body_model_smplx_path,
+                                num_betas=num_betas).to(comp_device)
+    female_body_model = BodyModel(smpl_file_path=female_body_model_smplx_path,
+                                  num_betas=num_betas).to(comp_device)
 
     faces = copy2cpu(male_body_model.f)  # Jason 2025-09-06: 面部信息，好像没用上
 
