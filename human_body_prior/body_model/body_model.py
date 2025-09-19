@@ -99,8 +99,8 @@ class BodyModel(nn.Module):
             else:
                 raise (ValueError('dmpl_file_path should be provided when using dmpls!'))
 
-        if self.use_dmpl and self.model_type in ['smplx', 'mano', 'animal_horse', 'animal_dog']: raise (
-            NotImplementedError('DMPLs only work with SMPL/SMPLH models for now.'))
+        if self.use_dmpl and self.model_type in ['smplx', 'mano', 'animal_horse', 'animal_dog']:
+            raise (NotImplementedError('DMPLs only work with SMPL/SMPLH models for now.'))
 
         # Mean template vertices
         self.comp_register('init_v_template', torch.tensor(smpl_dict['v_template'][None], dtype=dtype), persistent=persistant_buffer)
