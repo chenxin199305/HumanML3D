@@ -7,9 +7,9 @@ from tqdm import tqdm
 
 from human_body_prior.tools.omni_tools import copy2cpu
 
-flag_run_raw_pose_processing = True
+flag_run_raw_pose_processing = False
 flag_run_motion_representation = True
-flag_run_calculate_mean_variance = True
+flag_run_calculate_mean_variance = False
 
 # ====================================================================================================
 
@@ -79,33 +79,33 @@ else:
     num_betas = 10
 
     # USE: SMPL-H + DMPL model
-    # male_body_model_smplh_path = 'body_model/smplh/male/model.npz'
-    # male_body_model_dmpl_path = 'body_model/dmpls/male/model.npz'
-    #
-    # female_body_model_smplh_path = 'body_model/smplh/female/model.npz'
-    # female_body_model_dmpl_path = 'body_model/dmpls/female/model.npz'
-    #
+    male_body_model_smplh_path = 'body_model/smplh/male/model.npz'
+    male_body_model_dmpl_path = 'body_model/dmpls/male/model.npz'
+
+    female_body_model_smplh_path = 'body_model/smplh/female/model.npz'
+    female_body_model_dmpl_path = 'body_model/dmpls/female/model.npz'
+
     # number of DMPL parameters
     # DMPL参数（ψ）：控制肌肉动态、脂肪抖动等软组织运动，通常维度较低（4或8维）
-    # num_dmpls = 8
-    #
-    # male_body_model = BodyModel(smpl_file_path=male_body_model_smplh_path,
-    #                             dmpl_file_path=male_body_model_dmpl_path,
-    #                             num_betas=num_betas,
-    #                             num_dmpls=num_dmpls, ).to(comp_device)
-    # female_body_model = BodyModel(smpl_file_path=female_body_model_smplh_path,
-    #                               dmpl_file_path=female_body_model_dmpl_path,
-    #                               num_betas=num_betas,
-    #                               num_dmpls=num_dmpls, ).to(comp_device)
+    num_dmpls = 8
+
+    male_body_model = BodyModel(smpl_file_path=male_body_model_smplh_path,
+                                dmpl_file_path=male_body_model_dmpl_path,
+                                num_betas=num_betas,
+                                num_dmpls=num_dmpls, ).to(comp_device)
+    female_body_model = BodyModel(smpl_file_path=female_body_model_smplh_path,
+                                  dmpl_file_path=female_body_model_dmpl_path,
+                                  num_betas=num_betas,
+                                  num_dmpls=num_dmpls, ).to(comp_device)
 
     # USE: SMPL-X model
-    male_body_model_smplx_path = 'body_model/smplx/SMPLX_MALE.npz'
-    female_body_model_smplx_path = 'body_model/smplx/SMPLX_FEMALE.npz'
-
-    male_body_model = BodyModel(smpl_file_path=male_body_model_smplx_path,
-                                num_betas=num_betas).to(comp_device)
-    female_body_model = BodyModel(smpl_file_path=female_body_model_smplx_path,
-                                  num_betas=num_betas).to(comp_device)
+    # male_body_model_smplx_path = 'body_model/smplx/SMPLX_MALE.npz'
+    # female_body_model_smplx_path = 'body_model/smplx/SMPLX_FEMALE.npz'
+    #
+    # male_body_model = BodyModel(smpl_file_path=male_body_model_smplx_path,
+    #                             num_betas=num_betas).to(comp_device)
+    # female_body_model = BodyModel(smpl_file_path=female_body_model_smplx_path,
+    #                               num_betas=num_betas).to(comp_device)
 
     faces = copy2cpu(male_body_model.f)  # Jason 2025-09-06: 面部信息，好像没用上
 
@@ -636,6 +636,8 @@ else:
         return positions
 
 
+    # --------------------------------------------------
+
     # The given data is used to double check if you are on the right track.
     reference1 = np.load('./HumanML3D/new_joints/012314.npy')
     reference2 = np.load('./HumanML3D/new_joint_vecs/012314.npy')
@@ -643,62 +645,63 @@ else:
     '''
     For HumanML3D Dataset
     '''
-    #
-    # if __name__ == "__main__":
-    #     example_id = "000021"
-    #     # Lower legs
-    #     l_idx1, l_idx2 = 5, 8
-    #     # Right/Left foot
-    #     fid_r, fid_l = [8, 11], [7, 10]
-    #     # Face direction, r_hip, l_hip, sdr_r, sdr_l
-    #     face_joint_indx = [2, 1, 17, 16]
-    #     # l_hip, r_hip
-    #     r_hip, l_hip = 2, 1
-    #     joints_num = 22
-    #     # ds_num = 8
-    #     data_dir = './joints/'
-    #     save_dir1 = './HumanML3D/new_joints/'
-    #     save_dir2 = './HumanML3D/new_joint_vecs/'
-    #
-    #     os.makedirs(save_dir1, exist_ok=True)
-    #     os.makedirs(save_dir2, exist_ok=True)
-    #
-    #     n_raw_offsets = torch.from_numpy(t2m_raw_offsets)
-    #     kinematic_chain = t2m_kinematic_chain
-    #
-    #     # Get offsets of target skeleton
-    #     example_data = np.load(os.path.join(data_dir, example_id + '.npy'))
-    #     example_data = example_data.reshape(len(example_data), -1, 3)
-    #     example_data = torch.from_numpy(example_data)
-    #     tgt_skel = Skeleton(n_raw_offsets, kinematic_chain, 'cpu')
-    #     # (joints_num, 3)
-    #     tgt_offsets = tgt_skel.get_offsets_joints(example_data[0])
-    #     # print(tgt_offsets)
-    #
-    #     source_list = os.listdir(data_dir)
-    #     frame_num = 0
-    #     for source_file in tqdm(source_list):
-    #         source_data = np.load(os.path.join(data_dir, source_file))[:, :joints_num]
-    #         try:
-    #             data, ground_positions, positions, l_velocity = process_file(source_data, 0.002)
-    #             rec_ric_data = recover_from_ric(torch.from_numpy(data).unsqueeze(0).float(), joints_num)
-    #             np.save(pjoin(save_dir1, source_file), rec_ric_data.squeeze().numpy())
-    #             np.save(pjoin(save_dir2, source_file), data)
-    #             frame_num += data.shape[0]
-    #         except Exception as e:
-    #             print(source_file)
-    #             print(e)
-    #     #         print(source_file)
-    #     #         break
-    #
-    #     print('Total clips: %d, Frames: %d, Duration: %fm' %
-    #           (len(source_list), frame_num, frame_num / 20 / 60))
-    #
-    # reference1_1 = np.load('./HumanML3D/new_joints/012314.npy')
-    # reference2_1 = np.load('./HumanML3D/new_joint_vecs/012314.npy')
-    #
-    # abs(reference1 - reference1_1).sum()
-    # abs(reference2 - reference2_1).sum()
+    example_id = "000021"
+
+    # Lower legs
+    l_idx1, l_idx2 = 5, 8
+
+    # Right/Left foot
+    fid_r, fid_l = [8, 11], [7, 10]
+
+    # Face direction, r_hip, l_hip, sdr_r, sdr_l
+    face_joint_indx = [2, 1, 17, 16]
+
+    # l_hip, r_hip
+    r_hip, l_hip = 2, 1
+    joints_num = 22
+
+    # ds_num = 8
+    data_dir = './joints/'
+    save_dir1 = './HumanML3D/new_joints/'
+    save_dir2 = './HumanML3D/new_joint_vecs/'
+
+    os.makedirs(save_dir1, exist_ok=True)
+    os.makedirs(save_dir2, exist_ok=True)
+
+    n_raw_offsets = torch.from_numpy(t2m_raw_offsets)
+    kinematic_chain = t2m_kinematic_chain
+
+    # Get offsets of target skeleton
+    example_data = np.load(os.path.join(data_dir, example_id + '.npy'))
+    example_data = example_data.reshape(len(example_data), -1, 3)
+    example_data = torch.from_numpy(example_data)
+
+    tgt_skel = Skeleton(n_raw_offsets, kinematic_chain, 'cpu')  # (joints_num, 3)
+    tgt_offsets = tgt_skel.get_offsets_joints(example_data[0])
+    # print(tgt_offsets)
+
+    source_list = os.listdir(data_dir)
+    frame_num = 0
+    for source_file in tqdm(source_list):
+        source_data = np.load(os.path.join(data_dir, source_file))[:, :joints_num]
+        try:
+            data, ground_positions, positions, l_velocity = process_file(source_data, 0.002)
+            rec_ric_data = recover_from_ric(torch.from_numpy(data).unsqueeze(0).float(), joints_num)
+            np.save(pjoin(save_dir1, source_file), rec_ric_data.squeeze().numpy())
+            np.save(pjoin(save_dir2, source_file), data)
+            frame_num += data.shape[0]
+        except Exception as e:
+            print(source_file)
+            print(e)
+
+    print('Total clips: %d, Frames: %d, Duration: %fm'
+          % (len(source_list), frame_num, frame_num / 20 / 60))
+
+    reference1_1 = np.load('./HumanML3D/new_joints/012314.npy')
+    reference2_1 = np.load('./HumanML3D/new_joint_vecs/012314.npy')
+
+    abs(reference1 - reference1_1).sum()
+    abs(reference2 - reference2_1).sum()
 
 # ====================================================================================================
 

@@ -57,8 +57,12 @@ else:
 
         # (seq_len, joints_num, 3)
         data = joints.copy().reshape(len(joints), -1, 3)
+
+        # ax = p3.Axes3D(fig)
         fig = plt.figure(figsize=figsize)
-        ax = p3.Axes3D(fig)
+        ax = p3.Axes3D(fig, auto_add_to_figure=False)
+        fig.add_axes(ax)
+
         init()
         MINS = data.min(axis=0).min(axis=0)
         MAXS = data.max(axis=0).max(axis=0)
@@ -78,33 +82,43 @@ else:
         #     print(trajec.shape)
 
         def update(index):
-            #         print(index)
-            ax.lines = []
-            ax.collections = []
-            ax.view_init(elev=120, azim=-90)
-            ax.dist = 7.5
-            #         ax =
-            plot_xzPlane(MINS[0] - trajec[index, 0], MAXS[0] - trajec[index, 0], 0, MINS[2] - trajec[index, 1], MAXS[2] - trajec[index, 1])
-            #         ax.scatter(data[index, :22, 0], data[index, :22, 1], data[index, :22, 2], color='black', s=3)
+            try:
+                ax.lines = []
+                ax.collections = []
+                ax.view_init(elev=120, azim=-90)
+                ax.dist = 7.5
 
-            if index > 1:
-                ax.plot3D(trajec[:index, 0] - trajec[index, 0], np.zeros_like(trajec[:index, 0]), trajec[:index, 1] - trajec[index, 1], linewidth=1.0,
-                          color='blue')
-            #             ax = plot_xzPlane(ax, MINS[0], MAXS[0], 0, MINS[2], MAXS[2])
+                plot_xzPlane(MINS[0] - trajec[index, 0], MAXS[0] - trajec[index, 0], 0,
+                             MINS[2] - trajec[index, 1], MAXS[2] - trajec[index, 1])
 
-            for i, (chain, color) in enumerate(zip(kinematic_tree, colors)):
-                #             print(color)
-                if i < 5:
-                    linewidth = 4.0
-                else:
-                    linewidth = 2.0
-                ax.plot3D(data[index, chain, 0], data[index, chain, 1], data[index, chain, 2], linewidth=linewidth, color=color)
-            #         print(trajec[:index, 0].shape)
+                if index > 1:
+                    ax.plot3D(trajec[:index, 0] - trajec[index, 0],
+                              np.zeros_like(trajec[:index, 0]),
+                              trajec[:index, 1] - trajec[index, 1],
+                              linewidth=1.0, color='blue')
 
-            plt.axis('off')
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
-            ax.set_zticklabels([])
+                # 简化版本，只绘制关键点
+                for i, (chain, color) in enumerate(zip(kinematic_tree, colors)):
+                    if i < 5:
+                        linewidth = 4.0
+                    else:
+                        linewidth = 2.0
+
+                    # 只使用第一个有效的索引
+                    if chain[0] < data.shape[1]:
+                        ax.plot3D([data[index, chain[0], 0]],
+                                  [data[index, chain[0], 1]],
+                                  [data[index, chain[0], 2]],
+                                  linewidth=linewidth, color=color, marker='o')
+
+                plt.axis('off')
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
+                ax.set_zticklabels([])
+
+            except Exception as e:
+                print(f"Error at index {index}: {e}")
+                print(f"Data shape: {data.shape}")
 
         ani = FuncAnimation(fig, update, frames=frame_number, interval=1000 / fps, repeat=False)
 
