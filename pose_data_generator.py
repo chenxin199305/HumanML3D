@@ -192,7 +192,7 @@ else:
         trans_matrix = np.array([[1.0, 0.0, 0.0],
                                  [0.0, 0.0, 1.0],
                                  [0.0, 1.0, 0.0]])  # Jason 2025-09-07: 这里没有对手性进行调整!!! 为什么？？？
-        tgt_fps = 50
+        tgt_fps = 20
 
         # 加载 AMASS 的 npz 数据
         bdata = np.load(src_path, allow_pickle=True)
@@ -212,7 +212,13 @@ else:
         else:
             body_model_object = female_body_model
 
-        # 降采样处理 (120 fps -> 50 fps)
+        """
+        Jason 2025-10-17:
+        原始的 AMASS 数据集帧率是 120 fps
+        HUMANML3D 进行降采样处理，然后与 index.csv 中的起止帧对应，
+        得到最终的 20 * N fps 数据 (N 根据每个数据集不同而不同)
+        """
+        # 降采样处理 (120 fps -> 20 fps)
         down_sample = int(fps / tgt_fps)
 
         bdata_poses = bdata['poses'][::down_sample, ...]
