@@ -322,7 +322,7 @@ else:
         start_frame = index_file.loc[i]['start_frame']
         end_frame = index_file.loc[i]['end_frame']
 
-        # 数据集特定处理
+        # 数据集特定处理：开头裁剪若干帧（相当于延时几秒开始记录）
         if 'humanact12' not in source_path:
             if 'Eyes_Japan_Dataset' in source_path:
                 data = data[3 * fps:]
