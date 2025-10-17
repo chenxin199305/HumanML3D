@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from human_body_prior.tools.omni_tools import copy2cpu
+from pose_data_animation import tgt_ani_dir
 
 flag_run_raw_pose_processing = True
 flag_run_motion_representation = True
@@ -191,7 +192,7 @@ else:
         trans_matrix = np.array([[1.0, 0.0, 0.0],
                                  [0.0, 0.0, 1.0],
                                  [0.0, 1.0, 0.0]])  # Jason 2025-09-07: 这里没有对手性进行调整!!! 为什么？？？
-        ex_fps = 20
+        tgt_fps = 50
 
         # 加载 AMASS 的 npz 数据
         bdata = np.load(src_path, allow_pickle=True)
@@ -211,10 +212,8 @@ else:
         else:
             body_model_object = female_body_model
 
-        # 降采样处理 (120fps -> 20fps)
-        down_sample = int(fps / ex_fps)
-        #     print(frame_number)
-        #     print(fps)
+        # 降采样处理 (120 fps -> 50 fps)
+        down_sample = int(fps / tgt_fps)
 
         bdata_poses = bdata['poses'][::down_sample, ...]
         bdata_trans = bdata['trans'][::down_sample, ...]
@@ -304,7 +303,7 @@ else:
     save_dir = './joints'
     index_file = pd.read_csv(index_path)
     total_amount = index_file.shape[0]
-    fps = 20
+    fps = 20  # 基础帧率
 
     # 处理索引文件中的每个动作片段
     for i in tqdm(range(total_amount)):
