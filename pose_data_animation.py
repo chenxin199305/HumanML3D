@@ -144,7 +144,8 @@ else:
         save_path = pjoin(tgt_ani_dir, npy_file[:-3] + 'mp4')
         if os.path.exists(save_path):
             continue
+        
         #   You may set the title on your own.
-        plot_3d_motion(save_path, kinematic_chain, data, title="None", fps=20, radius=4)
+        plot_3d_motion(save_path, kinematic_chain, data, title="None", fps=50, radius=4)
 
 # ====================================================================================================
