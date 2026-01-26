@@ -1,6 +1,8 @@
-git+https://github.com/nghorbani/body_visualizer
-git+https://github.com/MPI-IS/configer.git
-git+https://github.com/MPI-IS/mesh.git
+# Requirements for SMPL-X related code
+# Jason 2026-01-26: 为了确保各个版本的兼容性，指定了一些包的版本号，fork 到了个人仓库
+git+https://github.com/chenxin199305/body_visualizer
+git+https://github.com/chenxin199305/configer.git
+git+https://github.com/chenxin199305/mesh.git
 
 absl-py==1.0.0
 # body-visualizer==1.1.0

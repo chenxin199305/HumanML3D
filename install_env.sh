@@ -36,7 +36,7 @@ fi
 
 # Install the required packages
 echo "Installing required packages..."
-pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+pip install -r requirements.txt
 echo ""
 
 # Install packages from urls
