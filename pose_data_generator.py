@@ -227,10 +227,11 @@ else:
         得到最终的 20 * N fps 数据 (N 根据每个数据集不同而不同)
         """
         # 降采样处理 (120 fps -> 20 fps)
-        down_sample = int(fps / tgt_fps)
+        import scipy.signal
 
-        bdata_poses = bdata['poses'][::down_sample, ...]
-        bdata_trans = bdata['trans'][::down_sample, ...]
+        num_frames = int(len(bdata['poses']) * tgt_fps / fps)
+        bdata_poses = scipy.signal.resample(bdata['poses'], num_frames)
+        bdata_trans = scipy.signal.resample(bdata['trans'], num_frames)
 
         # 构建模型输入参数
         body_parms = {
@@ -313,6 +314,40 @@ else:
         return data
 
 
+    def load_with_fallback(source_path):
+        """
+        尝试加载 source_path
+        若不存在，则在其数据集根目录下递归查找同名文件
+        """
+        if os.path.exists(source_path):
+            return np.load(source_path)
+
+        filename = os.path.basename(source_path)
+
+        # 推断数据集根目录
+        # 例：./pose_data/KIT/3/kick_xxx.npy -> ./pose_data/KIT
+        # 例：./pose_data/Eyes_Japan_Dataset/hamada/pose-06-hangon-hamada_poses.npy -> ./pose_data/EyesJapanDataset
+        parts = source_path.split(os.sep)
+
+        parts_0 = parts[0]  # ./pose_data
+        parts_1 = parts[1]  # KIT or Eyes_Japan_Dataset
+
+        if os.path.exists(os.path.join(parts_0, parts_1)):
+            dataset_root = os.path.join(parts_0, parts_1)
+        else:
+            dataset_root = parts_0
+
+        for root, _, files in os.walk(dataset_root):
+            if filename in files:
+                fallback_path = os.path.join(root, filename)
+                print(f"[Fallback] {source_path} -> {fallback_path}")
+                return np.load(fallback_path)
+
+        raise FileNotFoundError(
+            f"File not found: {source_path} (also not found under {dataset_root})"
+        )
+
+
     index_path = './index.csv'
     save_dir = './joints'
     index_file = pd.read_csv(index_path)
@@ -326,24 +361,21 @@ else:
         new_name = index_file.loc[i]['new_name']
 
         # 加载之前生成的关节数据
-        data = np.load(source_path)
+        data = load_with_fallback(source_path)
         start_frame = index_file.loc[i]['start_frame']
         end_frame = index_file.loc[i]['end_frame']
 
         # 数据集特定处理：开头裁剪若干帧（相当于延时几秒开始记录）
-        if 'humanact12' not in source_path:
-            if 'Eyes_Japan_Dataset' in source_path:
-                data = data[3 * fps:]
-            if 'MPI_HDM05' in source_path:
-                data = data[3 * fps:]
-            if 'TotalCapture' in source_path:
-                data = data[1 * fps:]
-            if 'MPI_Limits' in source_path:
-                data = data[1 * fps:]
-            if 'Transitions_mocap' in source_path:
-                data = data[int(0.5 * fps):]
-            data = data[start_frame:end_frame]
-            data[..., 0] *= -1
+        if 'Eyes_Japan_Dataset' in source_path:
+            data = data[3 * fps:]
+        if 'MPI_HDM05' in source_path:
+            data = data[3 * fps:]
+        if 'TotalCapture' in source_path:
+            data = data[1 * fps:]
+        if 'MPI_Limits' in source_path:
+            data = data[1 * fps:]
+        if 'Transitions_mocap' in source_path:
+            data = data[int(0.5 * fps):]
 
         # 创建镜像版本并保存
         data_m = swap_left_right(data)
