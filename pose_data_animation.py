@@ -17,13 +17,15 @@ else:
     from os.path import join as pjoin
     from tqdm import tqdm
     import numpy as np
-    # %%
+
     import matplotlib
     import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
     from matplotlib.animation import FuncAnimation, PillowWriter
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
     import mpl_toolkits.mplot3d.axes3d as p3
+
+    from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
     def plot_3d_motion(save_path, kinematic_tree, joints, title, figsize=(10, 10), fps=120, radius=4):
@@ -66,11 +68,14 @@ else:
         init()
         MINS = data.min(axis=0).min(axis=0)
         MAXS = data.max(axis=0).max(axis=0)
-        colors = ['red', 'blue', 'black', 'red', 'blue',
-                  'darkblue', 'darkblue', 'darkblue', 'darkblue', 'darkblue',
-                  'darkred', 'darkred', 'darkred', 'darkred', 'darkred']
+
+        colors = [
+            'red', 'blue', 'black', 'red', 'blue',
+            'darkblue', 'darkblue', 'darkblue', 'darkblue', 'darkblue',
+            'darkred', 'darkred', 'darkred', 'darkred', 'darkred'
+        ]
+
         frame_number = data.shape[0]
-        #     print(data.shape)
 
         height_offset = MINS[1]
         data[:, :, 1] -= height_offset
@@ -92,10 +97,13 @@ else:
                              MINS[2] - trajec[index, 1], MAXS[2] - trajec[index, 1])
 
                 if index > 1:
-                    ax.plot3D(trajec[:index, 0] - trajec[index, 0],
-                              np.zeros_like(trajec[:index, 0]),
-                              trajec[:index, 1] - trajec[index, 1],
-                              linewidth=1.0, color='blue')
+                    ax.plot3D(
+                        trajec[:index, 0] - trajec[index, 0],
+                        np.zeros_like(trajec[:index, 0]),
+                        trajec[:index, 1] - trajec[index, 1],
+                        linewidth=1.0,
+                        color='blue',
+                    )
 
                 # 简化版本，只绘制关键点
                 for i, (chain, color) in enumerate(zip(kinematic_tree, colors)):
@@ -131,7 +139,13 @@ else:
     tgt_ani_dir = "./HumanML3D/animations/"
 
     # %%
-    kinematic_chain = [[0, 2, 5, 8, 11], [0, 1, 4, 7, 10], [0, 3, 6, 9, 12, 15], [9, 14, 17, 19, 21], [9, 13, 16, 18, 20]]
+    kinematic_chain = [
+        [0, 2, 5, 8, 11],
+        [0, 1, 4, 7, 10],
+        [0, 3, 6, 9, 12, 15],
+        [9, 14, 17, 19, 21],
+        [9, 13, 16, 18, 20],
+    ]
     os.makedirs(tgt_ani_dir, exist_ok=True)
 
     # %%
@@ -144,7 +158,7 @@ else:
         save_path = pjoin(tgt_ani_dir, npy_file[:-3] + 'mp4')
         if os.path.exists(save_path):
             continue
-        
+
         #   You may set the title on your own.
         plot_3d_motion(save_path, kinematic_chain, data, title="None", fps=50, radius=4)
 
