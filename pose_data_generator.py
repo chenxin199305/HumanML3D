@@ -1,8 +1,5 @@
-import sys, os
+import os
 import torch
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from human_body_prior.tools.omni_tools import copy2cpu
