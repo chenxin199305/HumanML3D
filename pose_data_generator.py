@@ -8,7 +8,7 @@ from tqdm import tqdm
 from human_body_prior.tools.omni_tools import copy2cpu
 
 flag_run_raw_pose_processing = False
-flag_run_motion_representation = True
+flag_run_motion_representation = False
 flag_run_calculate_mean_variance = True
 
 # ====================================================================================================
@@ -783,7 +783,9 @@ else:
 
         data = np.concatenate(data_list, axis=0)
 
-        print(data.shape)
+        print(
+            f"mean_variance on data shape: {data.shape}"
+        )
 
         Mean = data.mean(axis=0)
         Std = data.std(axis=0)
@@ -805,15 +807,15 @@ else:
 
 
     # The given data is used to double-check if you are on the right track.
-    reference1 = np.load('./HumanML3D/Mean.npy')
-    reference2 = np.load('./HumanML3D/Std.npy')
+    reference_mean = np.load('./HumanML3D/Mean.npy')
+    reference_std = np.load('./HumanML3D/Std.npy')
 
     data_dir = './HumanML3D/new_joint_vecs/'
     save_dir = './HumanML3D/'
     mean, std = mean_variance(data_dir, save_dir, 22)
 
     print(
-        f"Compare data {abs(mean - reference1).sum()}, {abs(std - reference2).sum()}\n"
+        f"Compare data {abs(mean - reference_mean).sum()}, {abs(std - reference_std).sum()}\n"
         f"If you see this line, you are on the right track!"
     )
 
