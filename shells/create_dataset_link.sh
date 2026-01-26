@@ -27,7 +27,6 @@ HUMANACT12_PATH=""
 read -p "Enter the path to the AMASS dataset (or leave blank to skip): " AMASS_PATH
 read -p "Enter the path to the DMPLS model (or leave blank to skip): " DMPLS_PATH
 read -p "Enter the path to the SMPL model (or leave blank to skip): " SMPL_PATH
-read -p "Enter the path to the HumanAct12 dataset (or leave blank to skip): " HUMANACT12_PATH
 echo ""
 
 #######################################
@@ -69,7 +68,6 @@ echo "Linking existing datasets..."
 link_dataset "$AMASS_PATH"      "motion_data/amass_data"
 link_dataset "$DMPLS_PATH"      "body_model/dmpls"
 link_dataset "$SMPL_PATH"       "body_model/smplh"
-link_dataset "$HUMANACT12_PATH" "pose_data/humanact12"
 
 echo ""
 echo "All specified datasets linked successfully."

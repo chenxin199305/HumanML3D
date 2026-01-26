@@ -8,9 +8,9 @@ from tqdm import tqdm
 from human_body_prior.tools.omni_tools import copy2cpu
 from pose_data_animation import tgt_ani_dir
 
-flag_run_raw_pose_processing = False
+flag_run_raw_pose_processing = True
 flag_run_motion_representation = True
-flag_run_calculate_mean_variance = False
+flag_run_calculate_mean_variance = True
 
 # ====================================================================================================
 
@@ -116,15 +116,23 @@ else:
     folders = []
     dataset_names = []
 
+    VALID_EXTENSIONS = (".npz", ".npy")  # AMASS 实际只需要 .npz
+
     for root, dirs, files in os.walk('./motion_data/amass_data'):
-        #     print(root, dirs, files)
-        #     for folder in dirs:
-        #         folders.append(os.path.join(root, folder))
         folders.append(root)
-        for name in files:
-            dataset_name = root.split('/')[2]
+
+        # 防止路径层级变化导致越界
+        parts = root.replace("\\", "/").split("/")
+        if len(parts) >= 3:
+            dataset_name = parts[2]
             if dataset_name not in dataset_names:
                 dataset_names.append(dataset_name)
+
+        for name in files:
+            # 关键过滤条件
+            if not name.lower().endswith(VALID_EXTENSIONS):
+                continue
+
             paths.append(os.path.join(root, name))
 
     print(
