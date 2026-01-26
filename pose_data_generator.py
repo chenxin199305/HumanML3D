@@ -815,7 +815,7 @@ else:
     mean, std = mean_variance(data_dir, save_dir, 22)
 
     print(
-        f"Compare data {abs(mean - reference_mean).sum()}, {abs(std - reference_std).sum()}\n"
+        f"Compare data output mean and std result: {abs(mean - reference_mean).sum()}, {abs(std - reference_std).sum()}\n"
         f"If you see this line, you are on the right track!"
     )
 
