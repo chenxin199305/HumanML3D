@@ -35,14 +35,6 @@ else:
         if len(title_sp) > 10:
             title = '\n'.join([' '.join(title_sp[:10]), ' '.join(title_sp[10:])])
 
-        def init():
-            ax.set_xlim3d([-radius / 2, radius / 2])
-            ax.set_ylim3d([0, radius])
-            ax.set_zlim3d([0, radius])
-            # print(title)
-            fig.suptitle(title, fontsize=20)
-            ax.grid(b=False)
-
         def plot_xzPlane(minx, maxx, miny, minz, maxz):
             ## Plot a plane XZ
             verts = [
@@ -65,7 +57,16 @@ else:
         ax = p3.Axes3D(fig, auto_add_to_figure=False)
         fig.add_axes(ax)
 
+        def init():
+            ax.set_xlim3d([-radius / 2, radius / 2])
+            ax.set_ylim3d([0, radius])
+            ax.set_zlim3d([0, radius])
+            # print(title)
+            fig.suptitle(title, fontsize=20)
+            ax.grid(b=False)
+
         init()
+
         MINS = data.min(axis=0).min(axis=0)
         MAXS = data.max(axis=0).max(axis=0)
 
@@ -84,8 +85,6 @@ else:
         data[..., 0] -= data[:, 0:1, 0]
         data[..., 2] -= data[:, 0:1, 2]
 
-        #     print(trajec.shape)
-
         def update(index):
             try:
                 ax.lines = []
@@ -93,31 +92,38 @@ else:
                 ax.view_init(elev=120, azim=-90)
                 ax.dist = 7.5
 
-                plot_xzPlane(MINS[0] - trajec[index, 0], MAXS[0] - trajec[index, 0], 0,
-                             MINS[2] - trajec[index, 1], MAXS[2] - trajec[index, 1])
+                plot_xzPlane(
+                    minx=MINS[0] - trajec[index, 0],
+                    maxx=MAXS[0] - trajec[index, 0],
+                    miny=0,
+                    minz=MINS[2] - trajec[index, 1],
+                    maxz=MAXS[2] - trajec[index, 1]
+                )
 
                 if index > 1:
                     ax.plot3D(
-                        trajec[:index, 0] - trajec[index, 0],
-                        np.zeros_like(trajec[:index, 0]),
-                        trajec[:index, 1] - trajec[index, 1],
+                        xs=trajec[:index, 0] - trajec[index, 0],
+                        ys=np.zeros_like(trajec[:index, 0]),
+                        zs=trajec[:index, 1] - trajec[index, 1],
                         linewidth=1.0,
                         color='blue',
                     )
 
-                # 简化版本，只绘制关键点
                 for i, (chain, color) in enumerate(zip(kinematic_tree, colors)):
                     if i < 5:
                         linewidth = 4.0
                     else:
                         linewidth = 2.0
 
-                    # 只使用第一个有效的索引
-                    if chain[0] < data.shape[1]:
-                        ax.plot3D([data[index, chain[0], 0]],
-                                  [data[index, chain[0], 1]],
-                                  [data[index, chain[0], 2]],
-                                  linewidth=linewidth, color=color, marker='o')
+                    chain = [j for j in chain if j < data.shape[1]]
+                    if len(chain) < 2:
+                        continue
+
+                    xs = data[index, chain, 0]
+                    ys = data[index, chain, 1]
+                    zs = data[index, chain, 2]
+
+                    ax.plot3D(xs, ys, zs, linewidth=linewidth, color=color)
 
                 plt.axis('off')
                 ax.set_xticklabels([])
