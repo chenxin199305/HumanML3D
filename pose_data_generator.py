@@ -782,10 +782,12 @@ else:
             data_list.append(data)
 
         data = np.concatenate(data_list, axis=0)
+
         print(data.shape)
 
         Mean = data.mean(axis=0)
         Std = data.std(axis=0)
+
         Std[0:1] = Std[0:1].mean() / 1.0
         Std[1:3] = Std[1:3].mean() / 1.0
         Std[3:4] = Std[3:4].mean() / 1.0
@@ -806,14 +808,13 @@ else:
     reference1 = np.load('./HumanML3D/Mean.npy')
     reference2 = np.load('./HumanML3D/Std.npy')
 
-    if __name__ == '__main__':
-        data_dir = './HumanML3D/new_joint_vecs/'
-        save_dir = './HumanML3D/'
-        mean, std = mean_variance(data_dir, save_dir, 22)
-    #     print(mean)
-    #     print(Std)
+    data_dir = './HumanML3D/new_joint_vecs/'
+    save_dir = './HumanML3D/'
+    mean, std = mean_variance(data_dir, save_dir, 22)
 
-    abs(mean - reference1).sum()
-    abs(std - reference2).sum()
+    print(
+        f"Compare data {abs(mean - reference1).sum()}, {abs(std - reference2).sum()}\n"
+        f"If you see this line, you are on the right track!"
+    )
 
 # ====================================================================================================
