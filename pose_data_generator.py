@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from human_body_prior.tools.omni_tools import copy2cpu
-from pose_data_animation import tgt_ani_dir
 
-flag_run_raw_pose_processing = True
+flag_run_raw_pose_processing = False
 flag_run_motion_representation = True
 flag_run_calculate_mean_variance = True
 
@@ -723,9 +722,9 @@ else:
 
     tgt_skel = Skeleton(n_raw_offsets, kinematic_chain, 'cpu')  # (joints_num, 3)
     tgt_offsets = tgt_skel.get_offsets_joints(example_data[0])
-    # print(tgt_offsets)
 
     source_list = os.listdir(data_dir)
+
     frame_num = 0
     for source_file in tqdm(source_list):
         source_data = np.load(os.path.join(data_dir, source_file))[:, :joints_num]
@@ -739,14 +738,17 @@ else:
             print(source_file)
             print(e)
 
-    print('Total clips: %d, Frames: %d, Duration: %fm'
-          % (len(source_list), frame_num, frame_num / 20 / 60))
+    print(
+        f"Total clips: {len(source_list)}, Frames: {frame_num}, Duration: {frame_num / 20 / 60}m"
+    )
 
     reference1_1 = np.load('./HumanML3D/new_joints/012314.npy')
     reference2_1 = np.load('./HumanML3D/new_joint_vecs/012314.npy')
 
-    abs(reference1 - reference1_1).sum()
-    abs(reference2 - reference2_1).sum()
+    print(
+        f"Compare data {abs(reference1 - reference1_1).sum()}, {abs(reference2 - reference2_1).sum()}\n"
+        f"If you see this line, you are on the right track!"
+    )
 
 # ====================================================================================================
 
@@ -781,6 +783,7 @@ else:
 
         data = np.concatenate(data_list, axis=0)
         print(data.shape)
+
         Mean = data.mean(axis=0)
         Std = data.std(axis=0)
         Std[0:1] = Std[0:1].mean() / 1.0
