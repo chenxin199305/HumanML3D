@@ -246,6 +246,7 @@ class BodyModel(nn.Module):
         :param v_shaped: 变形后的网格顶点, 可选参数，允许用户提供预变形的网格顶点
         :param return_dict: 是否以字典形式返回结果
         :param kwargs: 其他可选参数
+
         :return: 包含顶点、面、关节位置等信息的字典或对象
         '''
         batch_size = 1
