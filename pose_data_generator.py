@@ -261,7 +261,7 @@ else:
     import time
 
     # 处理每个数据集
-    # 将 AMASS 数据 .npz 转换为关节位置 .npy
+    # 将 AMASS 数据 .npz 转换为关节位置 .npy (关节位置点的坐标)
     for paths in group_path:
         dataset_name = paths[0].split('/')[2]
         pbar = tqdm(paths)
@@ -787,13 +787,20 @@ else:
         Mean = data.mean(axis=0)
         Std = data.std(axis=0)
 
-        Std[0:1] = Std[0:1].mean() / 1.0
-        Std[1:3] = Std[1:3].mean() / 1.0
-        Std[3:4] = Std[3:4].mean() / 1.0
-        Std[4: 4 + (joints_num - 1) * 3] = Std[4: 4 + (joints_num - 1) * 3].mean() / 1.0
-        Std[4 + (joints_num - 1) * 3: 4 + (joints_num - 1) * 9] = Std[4 + (joints_num - 1) * 3: 4 + (joints_num - 1) * 9].mean() / 1.0
-        Std[4 + (joints_num - 1) * 9: 4 + (joints_num - 1) * 9 + joints_num * 3] = Std[4 + (joints_num - 1) * 9: 4 + (joints_num - 1) * 9 + joints_num * 3].mean() / 1.0
-        Std[4 + (joints_num - 1) * 9 + joints_num * 3:] = Std[4 + (joints_num - 1) * 9 + joints_num * 3:].mean() / 1.0
+        Std[0:1] = \
+            Std[0:1].mean() / 1.0  # 根节点旋转速度
+        Std[1:3] = \
+            Std[1:3].mean() / 1.0  # 根节点 XZ 线速度
+        Std[3:4] = \
+            Std[3:4].mean() / 1.0  # 根节点 Y 高度
+        Std[4: 4 + (joints_num - 1) * 3] = \
+            Std[4: 4 + (joints_num - 1) * 3].mean() / 1.0  # 关节位置
+        Std[4 + (joints_num - 1) * 3: 4 + (joints_num - 1) * 9] = \
+            Std[4 + (joints_num - 1) * 3: 4 + (joints_num - 1) * 9].mean() / 1.0  # 关节旋转 (6D)
+        Std[4 + (joints_num - 1) * 9: 4 + (joints_num - 1) * 9 + joints_num * 3] = \
+            Std[4 + (joints_num - 1) * 9: 4 + (joints_num - 1) * 9 + joints_num * 3].mean() / 1.0  # 关节速度
+        Std[4 + (joints_num - 1) * 9 + joints_num * 3:] = \
+            Std[4 + (joints_num - 1) * 9 + joints_num * 3:].mean() / 1.0  # 脚步接触
 
         assert 8 + (joints_num - 1) * 9 + joints_num * 3 == Std.shape[-1]
 

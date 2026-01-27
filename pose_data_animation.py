@@ -11,6 +11,7 @@ from tqdm import tqdm
 # IMPORTANT: use headless backend BEFORE pyplot
 # ------------------------------------------------
 import matplotlib
+
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
@@ -114,7 +115,7 @@ class MotionAnimator:
         self.ax.add_collection3d(self.ground)
 
     def _update(self, frame):
-        # skeleton
+        # skeleton (骨架)
         for chain, line in self.lines:
             chain = [j for j in chain if j < self.joints.shape[1]]
             if len(chain) < 2:
@@ -127,7 +128,7 @@ class MotionAnimator:
             line.set_data(xs, ys)
             line.set_3d_properties(zs)
 
-        # trajectory
+        # trajectory (根节点在地面上的投影)
         if frame > 1:
             self.traj_line.set_data(
                 self.traj[:frame, 0] - self.traj[frame, 0],
@@ -137,7 +138,7 @@ class MotionAnimator:
                 self.traj[:frame, 1] - self.traj[frame, 1]
             )
 
-        # ground translation
+        # ground translation (地面阴影)
         dx, dz = self.traj[frame]
         verts = [[
             [self.mins[0] - dx, 0, self.mins[2] - dz],
@@ -206,8 +207,7 @@ def main():
     print(f"[INFO] Using {num_workers} parallel workers")
 
     with Pool(processes=num_workers) as pool:
-        list(tqdm(pool.imap_unordered(render_one_motion, tasks),
-                  total=len(tasks)))
+        list(tqdm(pool.imap_unordered(render_one_motion, tasks), total=len(tasks)))
 
 
 # =================================================
