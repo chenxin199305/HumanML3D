@@ -437,8 +437,8 @@ else:
         '''Put on Floor'''
         floor_height = positions.min(axis=0).min(axis=0)[1]
         positions[:, :, 1] -= floor_height
-        #     print(floor_height)
 
+        #     print(floor_height)
         #     plot_3d_motion("./positions_1.mp4", kinematic_chain, positions, 'title', fps=20)
 
         '''XZ at origin'''
@@ -747,6 +747,18 @@ else:
         f"If you see this line, you are on the right track!"
     )
 
+    """
+    Jason 2026-01-27:
+    | 属性             | `new_joints`                         | `new_joint_vecs`                    |
+    | --------------- | ------------------------------------- | ----------------------------------- |
+    | 数据类型         | 3D关节位置 `(seq_len, joints_num, 3)`  | 特征向量 `(seq_len, feature_dim)`     |
+    | 是否包含速度信息  | 否                                    | 是（根节点速度 + 局部关节速度）          |
+    | 是否旋转不变     | 否                                    | 是（RIFKE + cont6D）                  |
+    | 是否包含脚步接触  | 否                                    | 是                                   |
+    | 主要用途         | 可视化 / 渲染                          | 模型训练 / 动作表示                    |
+    | 来源            | 对齐后的关节位置                        | 对齐 + IK + 旋转表示 + 速度 + 脚步接触   |
+    """
+
 # ====================================================================================================
 
 if not flag_run_calculate_mean_variance:
@@ -816,7 +828,7 @@ else:
 
     data_dir = './HumanML3D/new_joint_vecs/'
     save_dir = './HumanML3D/'
-    mean, std = mean_variance(data_dir, save_dir, 22)
+    mean, std = mean_variance(data_dir, save_dir, joints_num=22)
 
     print(
         f"Compare data output mean and std result: {abs(mean - reference_mean).sum()}, {abs(std - reference_std).sum()}\n"
