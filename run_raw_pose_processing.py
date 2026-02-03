@@ -16,8 +16,12 @@ comp_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 from human_body_prior.body_model.body_model import BodyModel
 
+male_body_model, female_body_model = None, None
+
 
 def amass_to_pose(src_path, save_path):
+    global male_body_model, female_body_model
+
     """
     将 AMASS 数据集中的 .npz 文件转换为关节位置 .npy 文件
 
@@ -180,6 +184,8 @@ def load_with_fallback(source_path):
 
 
 def main():
+    global male_body_model, female_body_model
+    
     """
     Jason 2025-08-14:
     SMPL（Skinned Multi-Person Linear Model）和DMPL（Dynamic SMPL）是三维人体建模中紧密关联但功能侧重点不同的模型，
