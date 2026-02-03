@@ -334,6 +334,14 @@ class BodyModel(nn.Module):
         - 在这个姿势下，每个关节都有一个逆绑定矩阵（Inverse Bind Matrix），记为 $G_{j}^{-1}$。这个矩阵的作用是：将顶点从世界坐标变换到对应关节的局部空间坐标。
         
         模板网格 v_template
+        
+        Jtr 指的是“经过姿态与形状变形后的关节在世界坐标系中的三维位置”。更准确地说：
+        Jtr = Transformed Joints（或 Joint Transforms Result 中的 joint positions）
+        
+        verts：
+        👉 经过 shape + pose + LBS 之后的 最终网格顶点位置 (B, V, 3)
+        Jtr：
+        👉 经过 shape + pose + forward kinematics 之后的 关节位置 (B, J, 3)
         """
         verts, Jtr = lbs(
             betas=shape_components,
